@@ -1,12 +1,10 @@
 # Ignorar archivos de configuración y temporales
-.vscode/
-*.log
-*.tmp
-*.bak
-*.swp
-.History/
-.hintrc
+*.hintrc
+*node_modules/
+*Estructura/public/
+*.json
+*.html
+*.js
+*.env
 
 # Ignorar todo en ServipuertasMorelia excepto archivos CSS
-ServipuertasMorelia/**
-!ServipuertasMorelia/**/*.css
