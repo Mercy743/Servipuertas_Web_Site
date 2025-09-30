@@ -1,2 +1,5 @@
+# Ignorar todo
+*
+
 # Pero no ignores los archivos CSS
 !*.css
