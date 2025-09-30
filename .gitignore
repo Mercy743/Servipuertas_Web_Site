@@ -1,12 +1,6 @@
-# Ignorar archivos de configuración y temporales
-*.hintrc
-*node_modules/
-*Estructura/public/
-*.json
-*.html
-*.js
-*.env
+# Ignorar todo en ServipuertasMorelia
+ServipuertasMorelia/**
+.hintrc
 
-# Ignorar todo en ServipuertasMorelia excepto archivos CSS
-!Estructura/public/styles.css
-!Estructura/public/form-products.css
+# Pero no ignores los archivos CSS
+!ServipuertasMorelia/**/*.css
