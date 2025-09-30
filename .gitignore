@@ -1,6 +1,10 @@
 # Ignorar todo en ServipuertasMorelia
-ServipuertasMorelia/**
 .hintrc
+*.html
+*.json
+*.json
+*node_modules/
+*.env
+*.js
 
-# Pero no ignores los archivos CSS
-!ServipuertasMorelia/**/*.css
+
