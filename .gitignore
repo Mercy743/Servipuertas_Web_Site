@@ -2,5 +2,4 @@
 *
 
 # Pero no ignores los archivos CSS
-!form-products.css
-!styles.css
+!*.css
