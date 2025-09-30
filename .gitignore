@@ -8,3 +8,5 @@
 *.env
 
 # Ignorar todo en ServipuertasMorelia excepto archivos CSS
+!Estructura/public/styles.css
+!Estructura/public/form-products.css
