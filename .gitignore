@@ -1,10 +1,7 @@
 # Ignorar todo en ServipuertasMorelia
 .hintrc
-*.html
-*.json
-*.json
 *node_modules/
 *.env
-*.js
+
 
 

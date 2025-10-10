@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servipuertas Morelia</title>
+    
+    <!-- Estilos generales del sitio (colores, tipografías, menú, estructura principal) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Mercy743/Servipuertas_Web_Site/ServipuertasMorelia/Estructura/public/styles.css">
+
+    <!--Enlace a JavaScript-->
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <!--Encabezado y Navegación-->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">Servipuertas Morelia</div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html" class="active">Inicio</a></li>
+                    <li><a href="productos.html">Productos</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!--Bienvenida-->
+    <section id="inicio" class="section">
+        <h1>Bienvenido a Servipuertas Morelia</h1>
+        <p>En Servipuertas Morelia ofrecemos soluciones en puertas automáticas y sistemas de acceso, garantizando comodidad, seguridad y tecnología de vanguardia para hogares, negocios e industrias. Nos especializamos en la instalación, mantenimiento y reparación
+            de servipuertas, brindando un servicio confiable y adaptado a las necesidades de cada cliente.
+        </p>
+        <a href="#mision" class="cta-button">Conoce más</a>
+    </section>
+
+    <!--Misión-->
+    <section id="mision" class="section">
+        <div class="container">
+            <h2>Nuestro propósito</h2>
+            <div class="card">
+                <h3>Solucionamos tu vida</h3>
+                <p>Ofrecer soluciones innovadoras en automatización de puertas y accesos, combinando diseño, tecnología y seguridad para brindar a nuestros clientes comodidad y confianza en su hogar, negocio o fraccionamiento.</p>
+            </div>
+        </div>
+    </section>
+
+    <!--Visión-->
+    <section id="vision" class="section">
+        <div class="container">
+            <h2>Lo que aspiramos</h2>
+            <div class="card">
+                <h3>Ser líderes en el mercado</h3>
+                <p>Ser la empresa de referencia en puertas automáticas y sistemas de acceso inteligente en la región, reconocida por la calidad de nuestros productos</p>
+                <p>El servicio personalizado y la integración de tecnología moderna como controles WiFi y apertura móvil.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos Destacados -->
+    <section id="productos-destacados" class="section">
+        <div class="container">
+            <h2>Productos Destacados</h2>
+            <div id="lista-destacados" class="card-grid">
+                <!-- Productos se cargan aquí -->
+            </div>
+        </div>
+    </section>
+
+    <!--Contacto-->
+    <section id="contacto" class="section">
+        <div class="container">
+            <h2>Contacto</h2>
+            <div class="card">
+                <h3>¿Tienes alguna pregunta o necesitas más información? No dudes en contactarnos. Estamos aquí para ayudarte.</h3>
+                <p>Cels. +52 443 511 1173</p>
+                <p>+52 443 186 2420</p>
+            </div>
+        </div>
+    </section>
+
+    <!--Botón de Volver arriba-->
+    <button class="back-to-top" onclick="scrollToTop()">↑</button>
+
+    <!-- Script para cargar productos destacados -->
+    <script>
+        fetch("/api/productos")
+            .then(res => res.json())
+            .then(data => {
+                const contenedor = document.getElementById("lista-destacados");
+                data.slice(0, 3).forEach(prod => {
+                    const card = document.createElement("div");
+                    card.className = "card";
+                    card.innerHTML = `
+                        <h3>${prod.nombre}</h3>
+                        <p>${prod.descripcion || "Sin descripción"}</p>
+                        <p><strong>Precio aprox:</strong> $${prod.precio_referencia}</p>
+                    `;
+                    contenedor.appendChild(card);
+                });
+            })
+            .catch(err => console.error("Error cargando productos:", err));
+    </script>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2025 Servipuertas Morelia. Todos los derechos reservados.</p>
+                </div>
+
+                <div class="footer-links">
+                    <a href="#inicio">Inicio</a>
+                    <a href="productos.html">Productos</a>
+                </div>
+
+                <div class="footer-validators">
+                    <a href="" target="_blank" rel="noopener">
+                        <img src="https://www.w3.org/Icons/valid-html401-blue" alt="HTML Válido" width="80" height="15">
+                    </a>
+                    <a href="" target="_blank" rel="noopener">
+                        <img src="https://jigsaw.w3.org/css-validator/images/vcss-blue" alt="CSS Válido" width="80" height="15">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

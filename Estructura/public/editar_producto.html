@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+
+    <!-- Estilos generales del sitio (colores, tipografías, menú, estructura principal) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Mercy743/Servipuertas_Web_Site/ServipuertasMorelia/Estructura/public/styles.css">
+
+    <!-- Estilos específicos para los formularios de productos (altas, ediciones y eliminaciones) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Mercy743/Servipuertas_Web_Site/ServipuertasMorelia/Estructura/public/form-products.css">
+</head>
+
+<body>
+    <!--Encabezado y Navegación-->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">Servipuertas Morelia</div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="menu_producto.html" class="active">Menú Principal</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">Editar Producto</h1>
+
+        <div class="form-container">
+            <form id="editForm" method="POST" action="/editar-producto">
+                <!-- Campo oculto para el ID del producto -->
+                <input type="hidden" id="producto_id" name="producto_id" value="1">
+
+                <div class="form-group">
+                    <label for="nombre">Nombre del Producto *</label>
+                    <input type="text" id="nombre" name="nombre" required 
+                           placeholder="Ej: Puerta de Aluminio Blanca">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="categoria">Categoría *</label>
+                        <select id="categoria" name="categoria" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="puertas-aluminio" selected>Puertas de Aluminio</option>
+                            <option value="puertas-hierro">Puertas de Hierro</option>
+                            <option value="portones">Portones</option>
+                            <option value="ventanas">Ventanas</option>
+                            <option value="herrajes">Herrajes</option>
+                            <option value="accesorios">Accesorios</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="marca">Marca</label>
+                        <input type="text" id="marca" name="marca" 
+                               placeholder="Ej: Aluminio del Norte">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precio">Precio (MXN) *</label>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0" required 
+                               placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stock">Stock Disponible *</label>
+                        <input type="number" id="stock" name="stock" min="0" required 
+                               placeholder="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" 
+                              placeholder="Descripción del producto..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <a href="menu_producto.html" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Actualizar Producto</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2025 Servipuertas Morelia. Todos los derechos reservados.</p>
+                </div>
+
+                <div class="footer-links">
+                    <a href="menu_producto.html">Menú Principal</a>
+                </div>
+
+                <div class="footer-validators">
+                    <a href="" target="_blank" rel="noopener">
+                        <img src="https://www.w3.org/Icons/valid-html401-blue" alt="HTML Válido" width="80" height="15">
+                    </a>
+                    <a href="" target="_blank" rel="noopener">
+                        <img src="https://jigsaw.w3.org/css-validator/images/vcss-blue" alt="CSS Válido" width="80" height="15">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
