@@ -1,8 +1,14 @@
 // server.js
-require('dotenv').config();          // Carga variables de .env
-const express = require('express');
-const { Pool } = require('pg');
-const path = require('path');
+import 'dotenv/config';                    // Carga variables de .env
+import express from 'express';
+import pkg from 'pg';
+const { Pool } = pkg;
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Para usar __dirname en ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,5 +43,5 @@ app.get('/api/productos', async (req, res) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-    console.log('Servidor corriendo en http://localhost:${PORT}');
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);  // Corregí las comillas template
 });
