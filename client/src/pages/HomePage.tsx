@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSmoothScroll, useActiveSection } from '../utils/scriptUtils'; // ← AGREGAR ESTA IMPORTACIÓN
+import { useSmoothScroll, useActiveSection } from '../utils/scriptUtils'; 
 
 interface Product {
   id: number;
@@ -12,48 +12,43 @@ interface Product {
 const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
-
-  // AGREGAR ESTAS DOS LÍNEAS:
   useSmoothScroll();      // ← Navegación suave
   useActiveSection();     // ← Resaltado de menú
 
   // Cargar productos destacados
   useEffect(() => {
-    const loadFeaturedProducts = async () => {
-      try {
-        const response = await fetch('/api/productos');
-        const data = await response.json();
-        setFeaturedProducts(data.slice(0, 3));
-      } catch (error) {
-        console.error('Error cargando productos:', error);
-        // Datos de ejemplo
-        setFeaturedProducts([
-          {
-            id: 1,
-            nombre: "Puerta Automática Residencial",
-            descripcion: "Sistema automático para hogares con control remoto",
-            precio_referencia: 15000
-          },
-          {
-            id: 2,
-            nombre: "Puerta Corrediza Comercial",
-            descripcion: "Ideal para negocios y locales comerciales", 
-            precio_referencia: 25000
-          },
-          {
-            id: 3,
-            nombre: "Sistema de Acceso con Huella",
-            descripcion: "Control de acceso biométrico avanzado",
-            precio_referencia: 18000
-          }
-        ]);
-      }
-    };
+  const loadFeaturedProducts = async () => {
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_BASE}/api/productos`);
+      
+      if (!response.ok) throw new Error('Error al cargar productos');
+      
+      const data = await response.json();
+      setFeaturedProducts(data.slice(0, 3));
+    } catch (error) {
+      console.error('Error cargando productos:', error);
+      setFeaturedProducts([
+        {
+          id: 1,
+          nombre: "Puerta Automática Residencial",
+          descripcion: "Sistema automático para hogares con control remoto",
+          precio_referencia: 15000
+        },
+        {
+          id: 2,
+          nombre: "Puerta Corrediza Comercial",
+          descripcion: "Ideal para negocios y locales comerciales", 
+          precio_referencia: 25000
+        }
+      ]);
+    }
+  };
 
-    loadFeaturedProducts();
-  }, []);
+  loadFeaturedProducts();
+}, []);
 
-  // Mostrar/ocultar botón volver arriba (YA LO TIENES)
+  // Mostrar/ocultar botón volver arriba 
   useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 300);

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-// Navegación suave entre secciones (FALTA EN TU HOMEPAGE)
+// Navegación suave entre secciones 
 export const useSmoothScroll = () => {
   useEffect(() => {
     const handleSmoothScroll = (e: Event) => {
@@ -30,7 +30,7 @@ export const useSmoothScroll = () => {
   }, []);
 };
 
-// Efecto de resaltado en el menú según la sección visible (FALTA EN TU HOMEPAGE)
+// Efecto de resaltado en el menú según la sección visible
 export const useActiveSection = () => {
   useEffect(() => {
     const handleScroll = () => {
