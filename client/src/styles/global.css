@@ -33,21 +33,62 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* ← Logo a la izquierda, nav a la derecha */
     align-items: center;
-    padding: 0 20px;
+    padding: 0 40px; /* ← Más padding para separar de los bordes */
 }
 
+/* LOGO BIEN DELIMITADO A LA IZQUIERDA */
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     font-size: 28px;
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    color: inherit;
+    padding: 8px 0; /* ← Espacio interno */
+}
+
+.logo:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo-img {
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-img:hover {
+    transform: scale(1.08);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35);
+}
+
+.logo-text {
+    background: linear-gradient(135deg, #fff 0%, #e6f0ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    padding: 5px 0;
+}
+
+/* NAVEGACIÓN BIEN DELIMITADA A LA DERECHA */
+.nav {
+    margin-left: auto; /* ← Empuja la navegación completamente a la derecha */
 }
 
 .nav ul {
     list-style: none;
     display: flex;
-    gap: 30px;
+    gap: 25px; /* ← Espacio entre botones */
+    margin: 0;
+    padding: 0;
 }
 
 .nav a {
@@ -56,13 +97,21 @@ body {
     font-size: 16px;
     font-weight: 500;
     transition: all 0.3s;
-    padding: 8px 15px;
-    border-radius: 20px;
+    padding: 10px 20px; /* ← Botones más definidos */
+    border-radius: 25px;
+    border: 2px solid transparent; /* ← Borde para definir mejor los botones */
 }
 
 .nav a:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
+}
+
+/* Opcional: Para que el botón activo se vea más definido */
+.nav a.active {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 /* Botón volver arriba */

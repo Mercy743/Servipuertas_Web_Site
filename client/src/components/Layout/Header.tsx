@@ -1,31 +1,25 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
-  const location = useLocation();
-  
   return (
     <header className="header">
       <div className="header-container">
-        <div className="logo">Servipuertas Morelia</div>
+        {/* LOGO CON IMAGEN */}
+        <Link to="/" className="logo">
+          <img 
+            src="/favicon.ico" 
+            alt="Logo Servipuertas" 
+            className="logo-img" 
+          />
+          <span className="logo-text">Servipuertas Morelia</span>
+        </Link>
+        
         <nav className="nav">
           <ul>
-            <li>
-              <Link 
-                to="/" 
-                className={location.pathname === '/' ? 'active' : ''}
-              >
-                Inicio
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/productos"
-                className={location.pathname === '/productos' ? 'active' : ''}
-              >
-                Productos
-              </Link>
-            </li>
+            <li><Link to="/" className="nav-link">Inicio</Link></li>
+            <li><Link to="/productos" className="nav-link">Productos</Link></li>
+            <li><Link to="/admin/menu-producto" className="nav-link">Admin</Link></li>
           </ul>
         </nav>
       </div>

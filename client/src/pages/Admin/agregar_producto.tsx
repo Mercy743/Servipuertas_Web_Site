@@ -55,17 +55,19 @@ const agregar_producto: React.FC = () => {
 
   return (
     <div>
-      <header className="header">
+     <header className="header">
         <div className="header-container">
-          <div className="logo">Servipuertas Morelia</div>
+          <Link to="/admin/menu-producto" className="logo">
+            <img src="/favicon.ico" alt="Logo Servipuertas" className="logo-img" />
+            <span className="logo-text">Servipuertas Morelia</span>
+          </Link>
           <nav className="nav">
             <ul>
-              <li><Link to="/admin/menu" className="active">Menú Principal</Link></li>
+              <li><Link to="/admin/menu-producto" className="nav-link active">Menú Principal</Link></li>
             </ul>
           </nav>
         </div>
       </header>
-
       <main className="main-content">
         <h1 className="page-title">Agregar Nuevo Producto</h1>
 

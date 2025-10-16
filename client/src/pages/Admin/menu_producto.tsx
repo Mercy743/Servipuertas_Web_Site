@@ -2,39 +2,62 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import "../../styles/form-products.css";
 
-const menu_producto: React.FC = () => {
+const MenuProducto: React.FC = () => {
   return (
     <div>
       <header className="header">
         <div className="header-container">
-          <div className="logo">Servipuertas Morelia</div>
+          <Link to="/" className="logo">
+            <img 
+              src="/favicon.ico" 
+              alt="Logo Servipuertas" 
+              className="logo-img" 
+            />
+            <span className="logo-text">Servipuertas Morelia</span>
+          </Link>
           <nav className="nav">
             <ul>
-              <li><Link to="/admin/menu" className="active">Menú Principal</Link></li>
+              <li><Link to="/" className="nav-link">Inicio</Link></li>
+              <li><Link to="/productos" className="nav-link">Productos</Link></li>
             </ul>
           </nav>
         </div>
       </header>
 
       <main className="main-content">
-        <div className="productos-header">
-          <h1 className="page-title">Gestión de Productos</h1>
-          <Link to="/admin/agregar-producto" className="btn btn-add">
-            <span>➕</span> Agregar Producto
+        <h1 className="page-title">Panel de Administración</h1>
+
+        {/* OPCIONES CRUD EN TARJETAS */}
+        <div className="stats-container" style={{marginTop: '2rem'}}>
+          <Link to="/admin/agregar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
+            <div className="stat-number"></div>
+            <div className="stat-label">Agregar Producto</div>
+            <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Crear nuevo producto en el inventario</p>
+          </Link>
+
+          <Link to="/admin/editar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
+            <div className="stat-number">✏️</div>
+            <div className="stat-label">Editar Producto</div>
+            <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Modificar información de productos</p>
+          </Link>
+
+          <Link to="/admin/eliminar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
+            <div className="stat-number">🗑️</div>
+            <div className="stat-label">Eliminar Producto</div>
+            <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Remover productos del inventario</p>
           </Link>
         </div>
 
-        <div className="table-container">
+        {/* TABLA DE PRODUCTOS EXISTENTES */}
+        <div className="table-container" style={{marginTop: '2rem'}}>
+          <h2 style={{color: '#333', marginBottom: '1rem'}}>Productos Registrados</h2>
           <div className="search-bar">
             <input 
               type="text" 
               placeholder="Buscar producto por nombre..." 
               className="search-input" 
             />
-            <select 
-              className="filter-select" 
-              title="Filtrar por categoría"
-            >
+            <select className="filter-select" title="Filtrar por categoría">
               <option value="">Todas las categorías</option>
               <option value="puertas-aluminio">Puertas de Aluminio</option>
               <option value="puertas-hierro">Puertas de Hierro</option>
@@ -62,23 +85,21 @@ const menu_producto: React.FC = () => {
               <tr>
                 <td colSpan={8} className="no-results">
                   <p>No hay productos registrados</p>
-                  <Link to="/admin/agregar-producto" className="btn btn-primary">
-                    Agregar Primer Producto
-                  </Link>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div className="stats-container">
+        {/* ESTADÍSTICAS */}
+        <div className="stats-container" style={{marginTop: '2rem'}}>
           <div className="stat-card">
             <div className="stat-number">0</div>
             <div className="stat-label">Total Productos</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">0</div>
-            <div className="stat-label">Total en Stock</div>
+            <div className="stat-label">Productos en Stock</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">$0.00</div>
@@ -95,7 +116,8 @@ const menu_producto: React.FC = () => {
             </div>
 
             <div className="footer-links">
-              <Link to="/admin/menu">Menú Principal</Link>
+              <Link to="/">Inicio</Link>
+              <Link to="/productos">Productos</Link>
             </div>
 
             <div className="footer-validators">
@@ -113,4 +135,4 @@ const menu_producto: React.FC = () => {
   );
 };
 
-export default menu_producto;
+export default MenuProducto;
