@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import "../styles/ProductsPage.css";
+import { Link } from 'react-router-dom';
 
 export const ProductsPage: React.FC = () => {
   const { products, loading, error } = useProducts();
@@ -12,21 +13,21 @@ export const ProductsPage: React.FC = () => {
     setMounted(true);
   }, []);
 
-  const filteredProducts = productsToShow === 0 
-    ? products 
+  const filteredProducts = productsToShow === 0
+    ? products
     : products.slice(0, productsToShow);
 
   const formatPrice = (price: any, precioTipo: string) => {
     if (!mounted) return 'Cargando...';
-    
+
     if (precioTipo === 'a_tratar') {
       return 'A tratar';
     }
-    
+
     if (!price || isNaN(Number(price))) {
       return 'Consultar';
     }
-    
+
     return `$${Number(price).toLocaleString('es-MX')}`;
   };
 
@@ -71,19 +72,19 @@ export const ProductsPage: React.FC = () => {
 
         <div className="filters-section">
           <div className="filter-buttons">
-            <button 
+            <button
               className={`filter-btn ${productsToShow === 3 ? 'active' : ''}`}
               onClick={() => setProductsToShow(3)}
             >
               Mostrar 3
             </button>
-            <button 
+            <button
               className={`filter-btn ${productsToShow === 5 ? 'active' : ''}`}
               onClick={() => setProductsToShow(5)}
             >
               Mostrar 5
             </button>
-            <button 
+            <button
               className={`filter-btn ${productsToShow === 0 ? 'active' : ''}`}
               onClick={() => setProductsToShow(0)}
             >
@@ -100,7 +101,7 @@ export const ProductsPage: React.FC = () => {
             const displayPrice = formatPrice(product.precio, product.precio_tipo);
             const isInStock = Number(product.stock) > 0;
             const isNegotiable = product.precio_tipo === 'a_tratar';
-            
+
             return (
               <div key={`product-${product.id}-${product.nombre}`} className="product-card">
                 <div className="product-header">
@@ -111,11 +112,11 @@ export const ProductsPage: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="product-image">
                   {product.imagen_url ? (
-                    <img 
-                      src={product.imagen_url} 
+                    <img
+                      src={product.imagen_url}
                       alt={product.nombre}
                       onError={(e) => {
                         e.currentTarget.src = 'https://via.placeholder.com/300x200/2c5530/ffffff?text=Sin+Imagen';
@@ -127,12 +128,12 @@ export const ProductsPage: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="product-info">
                   <p className="product-description">
                     {product.descripcion}
                   </p>
-                  
+
                   <div className="product-details">
                     <div className="detail-row">
                       <span className="detail-label">Precio:</span>
@@ -145,7 +146,7 @@ export const ProductsPage: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className="detail-row">
                       <span className="detail-label">Disponibilidad:</span>
                       <span className={`stock-status ${isInStock ? 'in-stock' : 'out-of-stock'}`}>
@@ -170,6 +171,29 @@ export const ProductsPage: React.FC = () => {
           </div>
         )}
       </div>
+      <footer className="footer">
+        <div className="footer-container">
+          <div className="footer-content">
+            <div className="footer-info">
+              <p>&copy; 2025 Servipuertas Morelia. Todos los derechos reservados.</p>
+            </div>
+
+            <div className="footer-links">
+              <a href="#inicio">Inicio</a>
+              <Link to="/productos">Productos</Link>
+            </div>
+
+            <div className="footer-validators">
+              <a href="https://validator.w3.org/" target="_blank" rel="noopener noreferrer">
+                <img src="https://www.w3.org/Icons/valid-html401-blue" alt="HTML Válido" width="80" height="15" />
+              </a>
+              <a href="https://jigsaw.w3.org/css-validator/" target="_blank" rel="noopener noreferrer">
+                <img src="https://jigsaw.w3.org/css-validator/images/vcss-blue" alt="CSS Válido" width="80" height="15" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
