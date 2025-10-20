@@ -30,7 +30,7 @@ const MenuProducto: React.FC = () => {
         {/* OPCIONES CRUD EN TARJETAS */}
         <div className="stats-container" style={{marginTop: '2rem'}}>
           <Link to="/admin/agregar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
-            <div className="stat-number"></div>
+            <div className="stat-number">🦬</div>
             <div className="stat-label">Agregar Producto</div>
             <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Crear nuevo producto en el inventario</p>
           </Link>
