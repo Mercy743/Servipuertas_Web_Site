@@ -40,18 +40,43 @@ const agregar_producto: React.FC = () => {
   });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    try {
-      console.log('Producto a agregar:', data);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert('✅ Producto agregado exitosamente');
-      
-    } catch (error) {
-      console.error('Error al agregar producto:', error);
-      alert('❌ Error al agregar producto');
+  try {
+    console.log('Producto a agregar:', data);
+    
+    const response = await fetch('http://localhost:3000/api/productos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        precio: data.precio,
+        precio_tipo: 'fijo',
+        stock: data.stock,
+        imagen_url: '',
+        marca: data.marca || '',
+        categoria: data.categoria
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Error del servidor');
     }
-  };
+
+    const nuevoProducto = await response.json();
+    console.log('Producto creado:', nuevoProducto);
+    
+    alert('✅ Producto agregado exitosamente');
+    
+    // Redirigir al menú principal
+    window.location.href = '/admin/menu-producto';
+    
+  } catch (error) {
+    console.error('Error al agregar producto:', error);
+    alert('❌ Error al agregar producto');
+  }
+};
 
   return (
     <div>

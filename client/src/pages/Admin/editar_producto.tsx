@@ -40,18 +40,44 @@ const editar_producto: React.FC = () => {
   });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    try {
-      console.log('Producto a editar:', data);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert('✅ Producto actualizado exitosamente');
-      
-    } catch (error) {
-      console.error('Error al actualizar producto:', error);
-      alert('❌ Error al actualizar producto');
+  try {
+    // Obtener ID del producto (necesitas implementar esto)
+    const productoId = 1; // Temporal - después lo obtienes de la URL
+    
+    console.log('Producto a editar:', data);
+    
+    const response = await fetch(`http://localhost:3000/api/productos/${productoId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nombre: data.nombre,
+        descripcion: data.descripcion || '',
+        precio: data.precio,
+        precio_tipo: 'fijo',
+        stock: data.stock,
+        imagen_url: '',
+        marca: data.marca || '',
+        categoria: data.categoria
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Error del servidor');
     }
-  };
+
+    const productoActualizado = await response.json();
+    console.log('Producto actualizado:', productoActualizado);
+    
+    alert('✅ Producto actualizado exitosamente');
+    window.location.href = '/admin/menu-producto';
+    
+  } catch (error) {
+    console.error('Error al actualizar producto:', error);
+    alert('❌ Error al actualizar producto');
+  }
+};
 
   return (
     <div>

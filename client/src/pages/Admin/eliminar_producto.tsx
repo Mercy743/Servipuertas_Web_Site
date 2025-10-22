@@ -14,18 +14,30 @@ const eliminar_producto: React.FC = () => {
   } = useForm<FormData>();
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-    try {
-      console.log('Producto a eliminar:', data);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      alert('✅ Producto eliminado exitosamente');
-      
-    } catch (error) {
-      console.error('Error al eliminar producto:', error);
-      alert('❌ Error al eliminar producto');
+  try {
+    const productoId = 1; // Temporal - después lo obtienes del formulario
+    
+    console.log('Producto a eliminar:', data);
+    
+    const response = await fetch(`http://localhost:3000/api/productos/${productoId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error('Error del servidor');
     }
-  };
+
+    const resultado = await response.json();
+    console.log('Producto eliminado:', resultado);
+    
+    alert('✅ Producto eliminado exitosamente');
+    window.location.href = '/admin/menu-producto';
+    
+  } catch (error) {
+    console.error('Error al eliminar producto:', error);
+    alert('❌ Error al eliminar producto');
+  }
+};
 
   return (
     <div>

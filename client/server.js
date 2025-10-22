@@ -2,12 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import path from 'path';
-import { fileURLToPath } from 'url';
 import cors from 'cors';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,52 +22,85 @@ pool.connect()
     .then(() => console.log("Conectado a PostgreSQL"))
     .catch(err => console.error("Error al conectar:", err));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ✅ RUTA PARA LA RAÍZ 
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'Servidor de Servipuertas Morelia funcionando',
-        endpoints: {
-            productos: '/api/productos',
-            test: '/api/test'
-        }
-    });
-});
-
-// Endpoint para obtener productos
+// GET - Obtener todos los productos
 app.get('/api/productos', async (req, res) => {
     try {
-        const resultado = await pool.query(`
-            SELECT 
-                id_producto as id,
-                nombre as nombre,
-                descripcion as descripcion,
-                precio_referencia as precio,
-                precio_tipo as precio_tipo,
-                stock as stock,
-                imagen_url as imagen_url,
-                marca as marca
-            FROM producto 
-            ORDER BY id_producto ASC
-        `);
-        
-        // Headers para evitar caché y problemas de CORS
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        
+        const resultado = await pool.query('SELECT * FROM producto ORDER BY id ASC');
         res.json(resultado.rows);
     } catch (err) {
-        console.error("Error al obtener productos:", err);
         res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
 
-// Endpoint de prueba
-app.get('/api/test', (req, res) => {
-    res.json({ message: '✅ API funcionando', status: 'ok' });
+// GET - Obtener un producto por ID
+app.get('/api/productos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const resultado = await pool.query('SELECT * FROM producto WHERE id = $1', [id]);
+        
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        
+        res.json(resultado.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Error al obtener producto' });
+    }
+});
+
+// POST - Crear nuevo producto
+app.post('/api/productos', async (req, res) => {
+    try {
+        const { nombre, descripcion, precio, precio_tipo, stock, imagen_url, marca, categoria } = req.body;
+        
+        const resultado = await pool.query(
+            `INSERT INTO producto (nombre, descripcion, precio, precio_tipo, stock, imagen_url, marca, categoria) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [nombre, descripcion, precio, precio_tipo, stock, imagen_url, marca, categoria]
+        );
+        
+        res.status(201).json(resultado.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Error al crear producto' });
+    }
+});
+
+// PUT - Actualizar producto
+app.put('/api/productos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, descripcion, precio, precio_tipo, stock, imagen_url, marca, categoria } = req.body;
+        
+        const resultado = await pool.query(
+            `UPDATE producto SET nombre=$1, descripcion=$2, precio=$3, precio_tipo=$4, stock=$5, imagen_url=$6, marca=$7, categoria=$8 
+             WHERE id = $9 RETURNING *`,
+            [nombre, descripcion, precio, precio_tipo, stock, imagen_url, marca, categoria, id]
+        );
+        
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        
+        res.json(resultado.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: 'Error al actualizar producto' });
+    }
+});
+
+// DELETE - Eliminar producto
+app.delete('/api/productos/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const resultado = await pool.query('DELETE FROM producto WHERE id = $1 RETURNING *', [id]);
+        
+        if (resultado.rows.length === 0) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+        
+        res.json({ message: 'Producto eliminado', producto: resultado.rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: 'Error al eliminar producto' });
+    }
 });
 
 app.listen(PORT, () => {
