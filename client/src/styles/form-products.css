@@ -558,3 +558,119 @@ body {
         grid-template-columns: 1fr;
     }
 }
+/* ========== ESTILOS ESPECÍFICOS PARA EDITAR PRODUCTO ========== */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: white;
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: block;
+  font-weight: 500;
+}
+
+/* Responsive para formularios */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+
+/* ========== ESTADOS DE CARGA ========== */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  text-align: center;
+  padding: 4rem;
+  color: #e74c3c;
+  background: rgba(231, 76, 60, 0.05);
+  border-radius: 10px;
+  margin: 2rem;
+}
+
+.error-container h2 {
+  margin-bottom: 1rem;
+}
+
+/* ========== MEJORAS PARA EL SUBTÍTULO DE EDICIÓN ========== */
+.page-subtitle {
+  text-align: center;
+  color: #2c5530;
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e8f5e8, #ffffff);
+  padding: 1.2rem 2.5rem;
+  border-radius: 15px;
+  border: 2px solid #2c5530;
+  box-shadow: 0 6px 20px rgba(44, 85, 48, 0.25);
+  display: inline-block;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Para pantallas móviles */
+@media (max-width: 768px) {
+  .page-subtitle {
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+    margin: 0 1rem 2rem 1rem;
+    transform: none;
+    margin-left: 0;
+    width: calc(100% - 2rem);
+    text-align: center;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+}

@@ -29,9 +29,9 @@ function App() {
           } />
           
           <Route path="/admin/agregar-producto" element={<AgregarProducto />} />
+          <Route path="/admin/menu-producto" element={<MenuProducto />} />
           <Route path="/admin/editar-producto" element={<EditarProducto />} />
           <Route path="/admin/eliminar-producto" element={<EliminarProducto />} />
-          <Route path="/admin/menu-producto" element={<MenuProducto />} />
         </Routes>
       </div>
     </Router>

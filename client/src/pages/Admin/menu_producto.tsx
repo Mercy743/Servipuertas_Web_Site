@@ -31,7 +31,6 @@ const MenuProducto: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // ✅ USA EL PROXY - NO pongas localhost:3000
       const response = await fetch('/api/productos');
       
       console.log('Response status:', response.status);
@@ -53,18 +52,16 @@ const MenuProducto: React.FC = () => {
     }
   };
 
+  // Función para eliminar producto directamente con confirmación
   const eliminarProducto = async (id: number, nombre: string) => {
-    if (!confirm(`¿Estás seguro de eliminar el producto "${nombre}"?`)) return;
-    
     try {
-      // ✅ USA EL PROXY
       const response = await fetch(`/api/productos/${id}`, { 
         method: 'DELETE' 
       });
       
       if (response.ok) {
         setProductos(prev => prev.filter(p => p.id !== id));
-        alert('✅ Producto eliminado');
+        alert(`✅ Producto "${nombre}" eliminado exitosamente`);
       } else {
         alert('❌ Error al eliminar producto');
       }
@@ -74,7 +71,7 @@ const MenuProducto: React.FC = () => {
     }
   };
 
-  // Filtrar productos
+  // Filtrar productos para la tabla
   const productosFiltrados = productos.filter(producto => {
     const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || producto.categoria === filterCategory;
@@ -139,7 +136,7 @@ const MenuProducto: React.FC = () => {
           </div>
         )}
 
-        {/* OPCIONES CRUD EN TARJETAS */}
+        {/* OPCIONES CRUD EN TARJETAS - Estas llevan a las páginas específicas */}
         <div className="stats-container" style={{marginTop: '2rem'}}>
           <Link to="/admin/agregar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
             <div className="stat-number">➕</div>
@@ -160,10 +157,11 @@ const MenuProducto: React.FC = () => {
           </Link>
         </div>
 
-        {/* TABLA DE PRODUCTOS EXISTENTES */}
+        {/* TABLA DE PRODUCTOS EXISTENTES - Aquí solo se puede eliminar directamente */}
         <div className="table-container" style={{marginTop: '2rem'}}>
           <h2 style={{color: '#333', marginBottom: '1rem'}}>Productos Registrados</h2>
           
+          {/* Filtros para la tabla */}
           <div className="search-bar">
             <input 
               type="text" 
@@ -265,31 +263,21 @@ const MenuProducto: React.FC = () => {
                       )}
                     </td>
                     <td>
-                      <Link 
-                        to={`/admin/editar-producto?id=${producto.id}`}
-                        style={{
-                          background: '#1976d2',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          marginRight: '8px',
-                          textDecoration: 'none',
-                          display: 'inline-block'
-                        }}
-                      >
-                        ✏️ Editar
-                      </Link>
+                      {/* SOLO BOTÓN ELIMINAR DIRECTO - No hay edición aquí */}
                       <button 
-                        onClick={() => eliminarProducto(producto.id, producto.nombre)}
+                        onClick={() => {
+                          if (confirm(`¿Estás seguro de eliminar el producto "${producto.nombre}"?`)) {
+                            eliminarProducto(producto.id, producto.nombre);
+                          }
+                        }}
                         style={{
                           background: '#d32f2f',
                           color: 'white',
                           border: 'none',
                           padding: '6px 12px',
                           borderRadius: '4px',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          fontSize: '0.8rem'
                         }}
                       >
                         🗑️ Eliminar
