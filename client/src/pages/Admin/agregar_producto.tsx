@@ -142,7 +142,7 @@ const agregar_producto: React.FC = () => {
               <div className="form-group">
                 <label htmlFor="precio">Precio (MXN) *</label>
                 <input 
-                  type="number" 
+                  type="text" 
                   id="precio" 
                   step="0.01" 
                   min="0" 
