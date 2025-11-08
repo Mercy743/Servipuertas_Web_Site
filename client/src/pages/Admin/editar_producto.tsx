@@ -8,30 +8,43 @@ import "../../styles/form-products.css";
 const productSchema = yup.object({
   nombre: yup.string().required('El nombre del producto es requerido'),
   categoria: yup.string().required('La categoría es requerida'),
-  precio: yup.number()
-    .typeError('El precio debe ser un número')
-    .positive('El precio debe ser positivo')
+  precio: yup
+    .mixed()
+    .test('precio-valido', 'El precio debe ser un número positivo o "a tratar"', (value) => {
+      if (value === 'a tratar' || value === 'A tratar') return true;
+      if (value === '' || value === null || value === undefined) return false;
+      
+      const numero = Number(value);
+      return !isNaN(numero) && numero >= 0;
+    })
     .required('El precio es requerido'),
   stock: yup.number()
     .typeError('El stock debe ser un número')
     .integer('El stock debe ser un número entero')
     .min(0, 'El stock no puede ser negativo')
     .required('El stock es requerido'),
-  marca: yup.string().default(''),
-  descripcion: yup.string().default('')
+  marca: yup.string().required('La marca es requerida'),
+  descripcion: yup.string().required('La descripción es requerida')
 });
 
-type FormData = yup.InferType<typeof productSchema>;
+type FormData = {
+  nombre: string;
+  categoria: string;
+  precio: number | string;
+  stock: number;
+  marca: string;
+  descripcion: string;
+};
 
 interface Producto {
   id: number;
   nombre: string;
   categoria: string;
-  precio: number;
+  precio: number | null;
   stock: number;
   marca: string;
   descripcion: string;
-  precio_tipo: string;
+  precio_tipo: 'fijo' | 'a_tratar';
   imagen_url: string;
 }
 
@@ -48,36 +61,45 @@ const EditarProducto: React.FC = () => {
     register, 
     handleSubmit, 
     setValue,
+    watch,
     formState: { errors, isSubmitting } 
   } = useForm<FormData>({
-    resolver: yupResolver(productSchema),
-    defaultValues: {
-      marca: '',
-      descripcion: ''
-    }
+    resolver: yupResolver(productSchema) as any
   });
+
+  const precioValue = watch('precio');
 
   useEffect(() => {
     const productoFromState = location.state?.producto;
     
     if (productoFromState) {
       setProducto(productoFromState);
-      setValue('nombre', productoFromState.nombre);
-      setValue('categoria', productoFromState.categoria);
-      setValue('precio', productoFromState.precio);
-      setValue('stock', productoFromState.stock);
-      setValue('marca', productoFromState.marca || '');
-      setValue('descripcion', productoFromState.descripcion || '');
+      setFormValues(productoFromState);
       setLoading(false);
     } else {
       cargarProductos();
     }
   }, [location, setValue]);
 
+  const setFormValues = (producto: Producto) => {
+    setValue('nombre', producto.nombre);
+    setValue('categoria', producto.categoria);
+    setValue('stock', producto.stock);
+    setValue('marca', producto.marca);
+    setValue('descripcion', producto.descripcion);
+    
+    // Manejar el precio según el tipo
+    if (producto.precio_tipo === 'a_tratar') {
+      setValue('precio', 'a tratar');
+    } else {
+      setValue('precio', producto.precio?.toString() || '');
+    }
+  };
+
   const cargarProductos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/productos');
+      const response = await fetch('http://localhost:3000/api/productos');
       
       if (response.ok) {
         const data = await response.json();
@@ -101,46 +123,50 @@ const EditarProducto: React.FC = () => {
 
   const seleccionarProducto = (productoSeleccionado: Producto) => {
     setProducto(productoSeleccionado);
-    setValue('nombre', productoSeleccionado.nombre);
-    setValue('categoria', productoSeleccionado.categoria);
-    setValue('precio', productoSeleccionado.precio);
-    setValue('stock', productoSeleccionado.stock);
-    setValue('marca', productoSeleccionado.marca || '');
-    setValue('descripcion', productoSeleccionado.descripcion || '');
+    setFormValues(productoSeleccionado);
   };
 
   const onSubmit = async (data: FormData) => {
     if (!producto) return;
     
     try {
-      const response = await fetch(`/api/productos/${producto.id}`, {
+      // Determinar el tipo de precio basado en el valor
+      const precioValue = data.precio;
+      const isPrecioATratar = typeof precioValue === 'string' && 
+                              precioValue.toLowerCase().includes('tratar');
+      
+      const precioTipo = isPrecioATratar ? 'a_tratar' : 'fijo';
+      const precioNumerico = isPrecioATratar ? null : Number(precioValue);
+
+      const response = await fetch(`http://localhost:3000/api/productos/${producto.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           nombre: data.nombre,
-          descripcion: data.descripcion || '',
-          precio: data.precio,
-          precio_tipo: producto.precio_tipo,
+          descripcion: data.descripcion,
+          precio: precioNumerico,
+          precio_tipo: precioTipo,
           stock: data.stock,
           imagen_url: producto.imagen_url,
-          marca: data.marca || '',
+          marca: data.marca,
           categoria: data.categoria
         })
       });
 
       if (!response.ok) {
-        throw new Error('Error del servidor');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error del servidor');
       }
 
       await response.json();
-      alert('✅ Producto actualizado exitosamente');
+      alert('Producto actualizado exitosamente');
       navigate('/admin/menu-producto');
       
     } catch (error) {
       console.error('Error al actualizar producto:', error);
-      alert('❌ Error al actualizar producto');
+      alert('Error al actualizar producto: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
@@ -211,12 +237,11 @@ const EditarProducto: React.FC = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
                 <option value="">Todas las categorías</option>
-                <option value="puertas-aluminio">Puertas de Aluminio</option>
-                <option value="puertas-hierro">Puertas de Hierro</option>
-                <option value="portones">Portones</option>
-                <option value="ventanas">Ventanas</option>
+                <option value="puerta">Puerta</option>
+                <option value="motor">Motor</option>
+                <option value="accesorio">Accesorio</option>
                 <option value="herrajes">Herrajes</option>
-                <option value="accesorios">Accesorios</option>
+                <option value="ventanas">Ventanas</option>
               </select>
             </div>
 
@@ -251,7 +276,7 @@ const EditarProducto: React.FC = () => {
                   >
                     <div style={{fontWeight: 'bold', color: '#2c5530'}}>{producto.nombre}</div>
                     <div style={{color: '#666', fontSize: '0.9rem'}}>
-                      Categoría: {producto.categoria} | Marca: {producto.marca || 'N/A'} | 
+                      Categoría: {producto.categoria} | Marca: {producto.marca} | 
                       Precio: {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`}
                     </div>
                   </div>
@@ -271,23 +296,23 @@ const EditarProducto: React.FC = () => {
             <p className="page-subtitle">Editando: {producto.nombre}</p>
 
             <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="form-group">
-                <label htmlFor="nombre">Nombre del Producto *</label>
-                <input 
-                  type="text" 
-                  id="nombre" 
-                  {...register('nombre')}
-                  className={errors.nombre ? 'error' : ''}
-                  placeholder="Ej: Puerta de Aluminio Blanca" 
-                />
-                {errors.nombre && (
-                  <span className="error-message">
-                    {errors.nombre.message}
-                  </span>
-                )}
-              </div>
+              <div className="form-grid">
+                <div className="form-group">
+                  <label htmlFor="nombre">Nombre del Producto *</label>
+                  <input 
+                    type="text" 
+                    id="nombre" 
+                    {...register('nombre')}
+                    className={errors.nombre ? 'error' : ''}
+                    placeholder="Ej: Puerta de Aluminio Blanca" 
+                  />
+                  {errors.nombre && (
+                    <span className="error-message">
+                      {errors.nombre.message?.toString()}
+                    </span>
+                  )}
+                </div>
 
-              <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="categoria">Categoría *</label>
                   <select 
@@ -296,48 +321,36 @@ const EditarProducto: React.FC = () => {
                     className={errors.categoria ? 'error' : ''}
                   >
                     <option value="">Seleccionar categoría</option>
-                    <option value="puertas-aluminio">Puertas de Aluminio</option>
-                    <option value="puertas-hierro">Puertas de Hierro</option>
-                    <option value="portones">Portones</option>
-                    <option value="ventanas">Ventanas</option>
+                    <option value="puerta">Puerta</option>
+                    <option value="motor">Motor</option>
+                    <option value="accesorio">Accesorio</option>
                     <option value="herrajes">Herrajes</option>
-                    <option value="accesorios">Accesorios</option>
+                    <option value="ventanas">Ventanas</option>
                   </select>
                   {errors.categoria && (
                     <span className="error-message">
-                      {errors.categoria.message}
+                      {errors.categoria.message?.toString()}
                     </span>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="marca">Marca</label>
-                  <input 
-                    type="text" 
-                    id="marca" 
-                    {...register('marca')}
-                    placeholder="Ej: Aluminio del Norte" 
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="precio">Precio (MXN) *</label>
                   <input 
-                    type="number" 
+                    type="text" 
                     id="precio" 
-                    step="0.01" 
-                    min="0" 
                     {...register('precio')}
                     className={errors.precio ? 'error' : ''}
-                    placeholder="0.00" 
+                    placeholder='Ej: 1500.00 o "a tratar"' 
                   />
                   {errors.precio && (
                     <span className="error-message">
-                      {errors.precio.message}
+                      {errors.precio.message?.toString()}
                     </span>
                   )}
+                  <small className="help-text">
+                    Ingrese un número (ej: 1500.00) o escriba "a tratar" para productos sin precio fijo
+                  </small>
                 </div>
 
                 <div className="form-group">
@@ -352,20 +365,42 @@ const EditarProducto: React.FC = () => {
                   />
                   {errors.stock && (
                     <span className="error-message">
-                      {errors.stock.message}
+                      {errors.stock.message?.toString()}
                     </span>
                   )}
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="descripcion">Descripción</label>
-                <textarea 
-                  id="descripcion" 
-                  {...register('descripcion')}
-                  placeholder="Descripción del producto..."
-                  rows={4}
-                ></textarea>
+                <div className="form-group">
+                  <label htmlFor="marca">Marca *</label>
+                  <input 
+                    type="text" 
+                    id="marca" 
+                    {...register('marca')}
+                    className={errors.marca ? 'error' : ''}
+                    placeholder="Ej: Maram, BFT, Aluminio del Norte" 
+                  />
+                  {errors.marca && (
+                    <span className="error-message">
+                      {errors.marca.message?.toString()}
+                    </span>
+                  )}
+                </div>
+
+                <div className="form-group full-width">
+                  <label htmlFor="descripcion">Descripción *</label>
+                  <textarea 
+                    id="descripcion" 
+                    {...register('descripcion')}
+                    className={errors.descripcion ? 'error' : ''}
+                    placeholder="Descripción detallada del producto, características, beneficios, etc."
+                    rows={4}
+                  ></textarea>
+                  {errors.descripcion && (
+                    <span className="error-message">
+                      {errors.descripcion.message?.toString()}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="button-group">
