@@ -51,9 +51,11 @@ const agregar_producto: React.FC = () => {
       
       // Determinar el tipo de precio basado en el valor
       const precioValue = data.precio;
-      const precioTipo = (typeof precioValue === 'string' && precioValue.toLowerCase().includes('tratar')) 
-        ? 'a tratar' 
-        : 'fijo';
+      const isPrecioATratar = typeof precioValue === 'string' && 
+                              precioValue.toLowerCase().includes('tratar');
+      
+      const precioTipo = isPrecioATratar ? 'a tratar' : 'fijo';
+      const precioNumerico = isPrecioATratar ? 0 : Number(precioValue);
       
       const response = await fetch('http://localhost:3000/api/productos', {
         method: 'POST',
@@ -63,8 +65,8 @@ const agregar_producto: React.FC = () => {
         body: JSON.stringify({
           nombre: data.nombre,
           descripcion: data.descripcion || '',
-          precio: precioTipo === 'fijo' ? Number(precioValue) : 0,
-          precio_tipo: precioTipo,
+          precio: precioNumerico, // Siempre número (0 si es "a tratar")
+          precio_tipo: precioTipo, // "fijo" o "a tratar"
           stock: data.stock,
           imagen_url: '',
           marca: data.marca || '',
