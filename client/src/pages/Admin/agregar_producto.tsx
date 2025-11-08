@@ -8,9 +8,15 @@ import "../../styles/form-products.css";
 const productSchema = yup.object({
   nombre: yup.string().required('El nombre del producto es requerido'),
   categoria: yup.string().required('La categoría es requerida'),
-  precio: yup.number()
-    .typeError('El precio debe ser un número')
-    .positive('El precio debe ser positivo')
+  precio: yup
+    .mixed()
+    .test('precio-valido', 'El precio debe ser un número positivo o "a tratar"', (value) => {
+      if (value === 'a tratar' || value === 'A tratar') return true;
+      if (value === '' || value === null || value === undefined) return false;
+      
+      const numero = Number(value);
+      return !isNaN(numero) && numero >= 0;
+    })
     .required('El precio es requerido'),
   stock: yup.number()
     .typeError('El stock debe ser un número')
@@ -24,7 +30,7 @@ const productSchema = yup.object({
 type FormData = {
   nombre: string;
   categoria: string;
-  precio: number;
+  precio: number | string;
   stock: number;
   marca?: string;
   descripcion?: string;
@@ -40,43 +46,49 @@ const agregar_producto: React.FC = () => {
   });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-  try {
-    console.log('Producto a agregar:', data);
-    
-    const response = await fetch('http://localhost:3000/api/productos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        nombre: data.nombre,
-        descripcion: data.descripcion || '',
-        precio: data.precio,
-        precio_tipo: 'fijo',
-        stock: data.stock,
-        imagen_url: '',
-        marca: data.marca || '',
-        categoria: data.categoria
-      })
-    });
+    try {
+      console.log('Producto a agregar:', data);
+      
+      // Determinar el tipo de precio basado en el valor
+      const precioValue = data.precio;
+      const precioTipo = (typeof precioValue === 'string' && precioValue.toLowerCase().includes('tratar')) 
+        ? 'a tratar' 
+        : 'fijo';
+      
+      const response = await fetch('http://localhost:3000/api/productos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          precio: precioTipo === 'fijo' ? Number(precioValue) : 0,
+          precio_tipo: precioTipo,
+          stock: data.stock,
+          imagen_url: '',
+          marca: data.marca || '',
+          categoria: data.categoria
+        })
+      });
 
-    if (!response.ok) {
-      throw new Error('Error del servidor');
+      if (!response.ok) {
+        throw new Error('Error del servidor');
+      }
+
+      const nuevoProducto = await response.json();
+      console.log('Producto creado:', nuevoProducto);
+      
+      alert('✅ Producto agregado exitosamente');
+      
+      // Redirigir al menú principal
+      window.location.href = '/admin/menu-producto';
+      
+    } catch (error) {
+      console.error('Error al agregar producto:', error);
+      alert('❌ Error al agregar producto');
     }
-
-    const nuevoProducto = await response.json();
-    console.log('Producto creado:', nuevoProducto);
-    
-    alert('✅ Producto agregado exitosamente');
-    
-    // Redirigir al menú principal
-    window.location.href = '/admin/menu-producto';
-    
-  } catch (error) {
-    console.error('Error al agregar producto:', error);
-    alert('❌ Error al agregar producto');
-  }
-};
+  };
 
   return (
     <div>
@@ -144,17 +156,18 @@ const agregar_producto: React.FC = () => {
                 <input 
                   type="text" 
                   id="precio" 
-                  step="0.01" 
-                  min="0" 
                   {...register('precio')}
                   className={errors.precio ? 'error' : ''}
-                  placeholder="0.00" 
+                  placeholder='Ej: 1500.00 o "a tratar"' 
                 />
                 {errors.precio && (
                   <span className="error-message">
                     {errors.precio.message?.toString()}
                   </span>
                 )}
+                <small className="help-text">
+                  Ingrese un número (ej: 1500.00) o escriba "a tratar" para productos sin precio fijo
+                </small>
               </div>
 
               <div className="form-group">
