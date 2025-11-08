@@ -23,8 +23,8 @@ const productSchema = yup.object({
     .integer('El stock debe ser un número entero')
     .min(0, 'El stock no puede ser negativo')
     .required('El stock es requerido'),
-  marca: yup.string().optional().default(''),
-  descripcion: yup.string().optional().default('')
+  marca: yup.string().required('La marca es requerida'),
+  descripcion: yup.string().required('La descripción es requerida')
 });
 
 type FormData = {
@@ -32,8 +32,8 @@ type FormData = {
   categoria: string;
   precio: number | string;
   stock: number;
-  marca?: string;
-  descripcion?: string;
+  marca: string;
+  descripcion: string;
 };
 
 const agregar_producto: React.FC = () => {
@@ -54,8 +54,11 @@ const agregar_producto: React.FC = () => {
       const isPrecioATratar = typeof precioValue === 'string' && 
                               precioValue.toLowerCase().includes('tratar');
       
-      const precioTipo = isPrecioATratar ? 'a tratar' : 'fijo';
-      const precioNumerico = isPrecioATratar ? 0 : Number(precioValue);
+      // IMPORTANTE: Usar 'a_tratar' en lugar de 'a tratar' para coincidir con el CHECK constraint
+      const precioTipo = isPrecioATratar ? 'a_tratar' : 'fijo';
+      
+      // Para "a tratar", enviamos null en precio. Para precio fijo, convertimos a número.
+      const precioNumerico = isPrecioATratar ? null : Number(precioValue);
       
       const response = await fetch('http://localhost:3000/api/productos', {
         method: 'POST',
@@ -64,18 +67,19 @@ const agregar_producto: React.FC = () => {
         },
         body: JSON.stringify({
           nombre: data.nombre,
-          descripcion: data.descripcion || '',
-          precio: precioNumerico, // Siempre número (0 si es "a tratar")
-          precio_tipo: precioTipo, // "fijo" o "a tratar"
+          descripcion: data.descripcion,
+          precio: precioNumerico, // null si es "a tratar", número si es fijo
+          precio_tipo: precioTipo, // "fijo" o "a_tratar" (con guión bajo)
           stock: data.stock,
-          imagen_url: '',
-          marca: data.marca || '',
+          imagen_url: '', // Puedes dejarlo vacío o agregar lógica para subir imágenes
+          marca: data.marca,
           categoria: data.categoria
         })
       });
 
       if (!response.ok) {
-        throw new Error('Error del servidor');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error del servidor');
       }
 
       const nuevoProducto = await response.json();
@@ -88,7 +92,7 @@ const agregar_producto: React.FC = () => {
       
     } catch (error) {
       console.error('Error al agregar producto:', error);
-      alert('❌ Error al agregar producto');
+      alert('❌ Error al agregar producto: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
@@ -139,12 +143,11 @@ const agregar_producto: React.FC = () => {
                   className={errors.categoria ? 'error' : ''}
                 >
                   <option value="">Seleccionar categoría</option>
-                  <option value="puertas-aluminio">Puertas de Aluminio</option>
-                  <option value="puertas-hierro">Puertas de Hierro</option>
-                  <option value="portones">Portones</option>
-                  <option value="ventanas">Ventanas</option>
+                  <option value="puerta">Puerta</option>
+                  <option value="motor">Motor</option>
+                  <option value="accesorio">Accesorio</option>
                   <option value="herrajes">Herrajes</option>
-                  <option value="accesorios">Accesorios</option>
+                  <option value="ventanas">Ventanas</option>
                 </select>
                 {errors.categoria && (
                   <span className="error-message">
@@ -190,28 +193,40 @@ const agregar_producto: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="marca">Marca</label>
+                <label htmlFor="marca">Marca *</label>
                 <input 
                   type="text" 
                   id="marca" 
                   {...register('marca')}
-                  placeholder="Ej: Aluminio del Norte" 
+                  className={errors.marca ? 'error' : ''}
+                  placeholder="Ej: Maram, BFT, Aluminio del Norte" 
                 />
+                {errors.marca && (
+                  <span className="error-message">
+                    {errors.marca.message?.toString()}
+                  </span>
+                )}
               </div>
 
               <div className="form-group full-width">
-                <label htmlFor="descripcion">Descripción</label>
+                <label htmlFor="descripcion">Descripción *</label>
                 <textarea 
                   id="descripcion" 
                   {...register('descripcion')}
+                  className={errors.descripcion ? 'error' : ''}
                   placeholder="Descripción detallada del producto, características, beneficios, etc."
                   rows={4}
                 ></textarea>
+                {errors.descripcion && (
+                  <span className="error-message">
+                    {errors.descripcion.message?.toString()}
+                  </span>
+                )}
               </div>
             </div>
 
             <div className="button-group">
-              <Link to="/admin/menu" className="btn btn-secondary">
+              <Link to="/admin/menu-producto" className="btn btn-secondary">
                 Cancelar
               </Link>
               <button 
@@ -235,7 +250,7 @@ const agregar_producto: React.FC = () => {
             </div>
 
             <div className="footer-links">
-              <Link to="/admin/menu">Menú Principal</Link>
+              <Link to="/admin/menu-producto">Menú Principal</Link>
             </div>
 
             <div className="footer-validators">
