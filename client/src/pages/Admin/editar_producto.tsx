@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import "../../styles/form-products.css";
+import { useAuth } from '../../hooks/useAuth';
 
 const productSchema = yup.object({
   nombre: yup.string().required('El nombre del producto es requerido'),
@@ -48,7 +49,8 @@ interface Producto {
   imagen_url: string;
 }
 
-const EditarProducto: React.FC = () => {
+const EditarProductoAdmin: React.FC = () => {
+  const { admin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [producto, setProducto] = useState<Producto | null>(null);
@@ -61,13 +63,10 @@ const EditarProducto: React.FC = () => {
     register, 
     handleSubmit, 
     setValue,
-    watch,
     formState: { errors, isSubmitting } 
   } = useForm<FormData>({
     resolver: yupResolver(productSchema) as any
   });
-
-  const precioValue = watch('precio');
 
   useEffect(() => {
     const productoFromState = location.state?.producto;
@@ -79,7 +78,7 @@ const EditarProducto: React.FC = () => {
     } else {
       cargarProductos();
     }
-  }, [location, setValue]);
+  }, [location]);
 
   const setFormValues = (producto: Producto) => {
     setValue('nombre', producto.nombre);
@@ -88,7 +87,6 @@ const EditarProducto: React.FC = () => {
     setValue('marca', producto.marca);
     setValue('descripcion', producto.descripcion);
     
-    // Manejar el precio según el tipo
     if (producto.precio_tipo === 'a_tratar') {
       setValue('precio', 'a tratar');
     } else {
@@ -130,7 +128,6 @@ const EditarProducto: React.FC = () => {
     if (!producto) return;
     
     try {
-      // Determinar el tipo de precio basado en el valor
       const precioValue = data.precio;
       const isPrecioATratar = typeof precioValue === 'string' && 
                               precioValue.toLowerCase().includes('tratar');
@@ -170,6 +167,15 @@ const EditarProducto: React.FC = () => {
     }
   };
 
+  if (!admin.isAuthenticated) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Verificando permisos de administrador...</p>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -181,47 +187,15 @@ const EditarProducto: React.FC = () => {
 
   return (
     <div>
-      <header className="header">
-        <div className="header-container">
-          <Link to="/admin/menu-producto" className="logo">
-            <img src="/favicon.ico" alt="Logo Servipuertas" className="logo-img" />
-            <span className="logo-text">Servipuertas Morelia</span>
-          </Link>
-          <nav className="nav">
-            <ul>
-              <li><Link to="/admin/menu-producto" className="nav-link active">Menú Principal</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
       <main className="main-content">
         <h1 className="page-title">Editar Producto</h1>
 
         {!producto ? (
-          // LISTA PARA SELECCIONAR PRODUCTO
           <div className="form-container">
-            <div style={{
-              textAlign: 'center', 
-              color: '#2c5530',
-              marginBottom: '2rem', 
-              fontSize: '1.2rem',
-              fontWeight: '600',
-              background: 'linear-gradient(135deg, #e8f5e8, #ffffff)',
-              padding: '1.2rem 2.5rem',
-              borderRadius: '15px',
-              border: '2px solid #2c5530',
-              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-              display: 'inline-block',
-              marginLeft: '50%',
-              transform: 'translateX(-50%)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-                Selecciona un producto para editar
+            <div className="selection-header">
+              Selecciona un producto
             </div>
 
-            {/* BUSCAR Y FILTRAR */}
             <div className="search-bar">
               <input 
                 type="text" 
@@ -245,44 +219,28 @@ const EditarProducto: React.FC = () => {
               </select>
             </div>
 
-            {/* LISTA DE PRODUCTOS */}
-            <div style={{maxHeight: '400px', overflowY: 'auto', marginBottom: '2rem'}}>
-              {productosFiltrados.length === 0 ? (
-                <div style={{textAlign: 'center', padding: '2rem', color: '#666'}}>
-                  {productos.length === 0 ? 'No hay productos registrados' : 'No se encontraron productos'}
-                </div>
-              ) : (
-                productosFiltrados.map(producto => (
-                  <div 
-                    key={producto.id}
-                    style={{
-                      padding: '1rem',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      marginBottom: '0.5rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      background: '#f8f9fa'
-                    }}
-                    onClick={() => seleccionarProducto(producto)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#e8f5e8';
-                      e.currentTarget.style.borderColor = '#2c5530';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f8f9fa';
-                      e.currentTarget.style.borderColor = '#e0e0e0';
-                    }}
-                  >
-                    <div style={{fontWeight: 'bold', color: '#2c5530'}}>{producto.nombre}</div>
-                    <div style={{color: '#666', fontSize: '0.9rem'}}>
-                      Categoría: {producto.categoria} | Marca: {producto.marca} | 
-                      Precio: {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`}
-                    </div>
+              <div className="products-list">
+                {productosFiltrados.length === 0 ? (
+                  <div className="no-products">
+                    {productos.length === 0 ? 'No hay productos registrados' : 'No se encontraron productos'}
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  productosFiltrados.map(producto => (
+                    <div 
+                      key={producto.id}
+                      className="product-item"
+                      onClick={() => seleccionarProducto(producto)}
+                    >
+                      <div className="product-name">{producto.nombre}</div>
+                      <div className="product-details">
+                        Categoría: {producto.categoria} | Marca: {producto.marca} | 
+                        Precio: {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`} |
+                        <span className="stock-info">Stock: {producto.stock}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
 
             <div className="button-group">
               <Link to="/admin/menu-producto" className="btn btn-secondary">
@@ -291,7 +249,6 @@ const EditarProducto: React.FC = () => {
             </div>
           </div>
         ) : (
-          // FORMULARIO DE EDICIÓN
           <div className="form-container">
             <p className="page-subtitle">Editando: {producto.nombre}</p>
 
@@ -448,4 +405,4 @@ const EditarProducto: React.FC = () => {
   );
 };
 
-export default EditarProducto;
+export default EditarProductoAdmin;

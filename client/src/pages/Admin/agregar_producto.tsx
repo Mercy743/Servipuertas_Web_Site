@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link } from 'react-router-dom';
 import "../../styles/form-products.css";
+import { useAuth } from '../../hooks/useAuth';
 
 const productSchema = yup.object({
   nombre: yup.string().required('El nombre del producto es requerido'),
@@ -36,7 +37,8 @@ type FormData = {
   descripcion: string;
 };
 
-const agregar_producto: React.FC = () => {
+const AgregarProductoAdmin: React.FC = () => {
+  const { admin } = useAuth();
   const { 
     register, 
     handleSubmit, 
@@ -47,17 +49,11 @@ const agregar_producto: React.FC = () => {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      console.log('Producto a agregar:', data);
-      
-      // Determinar el tipo de precio basado en el valor
       const precioValue = data.precio;
       const isPrecioATratar = typeof precioValue === 'string' && 
                               precioValue.toLowerCase().includes('tratar');
       
-      // IMPORTANTE: Usar 'a_tratar' en lugar de 'a tratar' para coincidir con el CHECK constraint
       const precioTipo = isPrecioATratar ? 'a_tratar' : 'fijo';
-      
-      // Para "a tratar", enviamos null en precio. Para precio fijo, convertimos a número.
       const precioNumerico = isPrecioATratar ? null : Number(precioValue);
       
       const response = await fetch('http://localhost:3000/api/productos', {
@@ -68,10 +64,10 @@ const agregar_producto: React.FC = () => {
         body: JSON.stringify({
           nombre: data.nombre,
           descripcion: data.descripcion,
-          precio: precioNumerico, // null si es "a tratar", número si es fijo
-          precio_tipo: precioTipo, // "fijo" o "a_tratar" (con guión bajo)
+          precio: precioNumerico,
+          precio_tipo: precioTipo,
           stock: data.stock,
-          imagen_url: '', // Puedes dejarlo vacío o agregar lógica para subir imágenes
+          imagen_url: '',
           marca: data.marca,
           categoria: data.categoria
         })
@@ -82,39 +78,29 @@ const agregar_producto: React.FC = () => {
         throw new Error(errorData.message || 'Error del servidor');
       }
 
-      const nuevoProducto = await response.json();
-      console.log('Producto creado:', nuevoProducto);
-      
-      alert('✅ Producto agregado exitosamente');
-      
-      // Redirigir al menú principal
+      await response.json();
+      alert('Producto agregado exitosamente');
       window.location.href = '/admin/menu-producto';
       
     } catch (error) {
       console.error('Error al agregar producto:', error);
-      alert('❌ Error al agregar producto: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+      alert('Error al agregar producto: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
+  if (!admin.isAuthenticated) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Verificando permisos de administrador...</p>
+      </div>
+    );
+  }
+
   return (
     <div>
-     <header className="header">
-        <div className="header-container">
-          <Link to="/admin/menu-producto" className="logo">
-            <img src="/favicon.ico" alt="Logo Servipuertas" className="logo-img" />
-            <span className="logo-text">Servipuertas Morelia</span>
-          </Link>
-          <nav className="nav">
-            <ul>
-              <li><Link to="/admin/menu-producto" className="nav-link active">Menú Principal</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
       <main className="main-content">
         <h1 className="page-title">Agregar Nuevo Producto</h1>
-
-        <div id="message" className="message"></div>
 
         <div className="form-container">
           <form id="productForm" onSubmit={handleSubmit(onSubmit)}>
@@ -268,4 +254,4 @@ const agregar_producto: React.FC = () => {
   );
 };
 
-export default agregar_producto;
+export default AgregarProductoAdmin;

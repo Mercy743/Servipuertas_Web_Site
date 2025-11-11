@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import "../../styles/form-products.css";
+import { useAuth } from '../../hooks/useAuth';
 
 interface Producto {
   id: number;
   nombre: string;
   categoria: string;
   marca: string;
-  precio: number;
+  precio: number | null;
   precio_tipo: string;
   stock: number;
   descripcion: string;
   imagen_url: string;
 }
 
-const EliminarProducto: React.FC = () => {
+const EliminarProductoAdmin: React.FC = () => {
+  const { admin } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [producto, setProducto] = useState<Producto | null>(null);
@@ -38,7 +40,7 @@ const EliminarProducto: React.FC = () => {
   const cargarProductos = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/productos');
+      const response = await fetch('http://localhost:3000/api/productos');
       
       if (response.ok) {
         const data = await response.json();
@@ -75,7 +77,7 @@ const EliminarProducto: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      const response = await fetch(`/api/productos/${producto.id}`, {
+      const response = await fetch(`http://localhost:3000/api/productos/${producto.id}`, {
         method: 'DELETE'
       });
 
@@ -84,16 +86,26 @@ const EliminarProducto: React.FC = () => {
       }
 
       await response.json();
-      alert('✅ Producto eliminado exitosamente');
+      alert('Producto eliminado exitosamente');
       navigate('/admin/menu-producto');
       
     } catch (error) {
       console.error('Error al eliminar producto:', error);
-      alert('❌ Error al eliminar producto');
+      alert('Error al eliminar producto');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  //CONDICIÓN DE AUTENTICACIÓN AL FINAL
+  if (!admin.isAuthenticated) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Verificando permisos de administrador...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -106,47 +118,15 @@ const EliminarProducto: React.FC = () => {
 
   return (
     <div>
-      <header className="header">
-        <div className="header-container">
-          <Link to="/admin/menu-producto" className="logo">
-            <img src="/favicon.ico" alt="Logo Servipuertas" className="logo-img" />
-            <span className="logo-text">Servipuertas Morelia</span>
-          </Link>
-          <nav className="nav">
-            <ul>
-              <li><Link to="/admin/menu-producto" className="nav-link active">Menú Principal</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
       <main className="main-content">
         <h1 className="page-title">Eliminar Producto</h1>
 
         {!producto ? (
-          // LISTA PARA SELECCIONAR PRODUCTO
           <div className="form-container">
-            <div style={{
-              textAlign: 'center', 
-              color: '#d32f2f',
-              marginBottom: '2rem', 
-              fontSize: '1.2rem',
-              fontWeight: '600',
-              background: 'linear-gradient(135deg, #ffe8e8, #ffffff)',
-              padding: '1.2rem 2.5rem',
-              borderRadius: '15px',
-              border: '2px solid #d32f2f',
-              boxShadow: '0 6px 20px rgba(0, 0, 0, 0.1)',
-              display: 'inline-block',
-              marginLeft: '50%',
-              transform: 'translateX(-50%)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-                Selecciona un producto para eliminar
+            <div className="selection-header danger">
+              Selecciona un producto para eliminar
             </div>
 
-            {/* BUSCAR Y FILTRAR */}
             <div className="search-bar">
               <input 
                 type="text" 
@@ -162,48 +142,31 @@ const EliminarProducto: React.FC = () => {
                 onChange={(e) => setFilterCategory(e.target.value)}
               >
                 <option value="">Todas las categorías</option>
-                <option value="puertas-aluminio">Puertas de Aluminio</option>
-                <option value="puertas-hierro">Puertas de Hierro</option>
-                <option value="portones">Portones</option>
-                <option value="ventanas">Ventanas</option>
+                <option value="puerta">Puerta</option>
+                <option value="motor">Motor</option>
+                <option value="accesorio">Accesorio</option>
                 <option value="herrajes">Herrajes</option>
-                <option value="accesorios">Accesorios</option>
+                <option value="ventanas">Ventanas</option>
               </select>
             </div>
 
-            {/* LISTA DE PRODUCTOS */}
-            <div style={{maxHeight: '400px', overflowY: 'auto', marginBottom: '2rem'}}>
+            <div className="products-list">
               {productosFiltrados.length === 0 ? (
-                <div style={{textAlign: 'center', padding: '2rem', color: '#666'}}>
+                <div className="no-products">
                   {productos.length === 0 ? 'No hay productos registrados' : 'No se encontraron productos'}
                 </div>
               ) : (
                 productosFiltrados.map(producto => (
                   <div 
                     key={producto.id}
-                    style={{
-                      padding: '1rem',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '8px',
-                      marginBottom: '0.5rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      background: '#f8f9fa'
-                    }}
+                    className="product-item danger"
                     onClick={() => seleccionarProducto(producto)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#ffe8e8';
-                      e.currentTarget.style.borderColor = '#d32f2f';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f8f9fa';
-                      e.currentTarget.style.borderColor = '#e0e0e0';
-                    }}
                   >
-                    <div style={{fontWeight: 'bold', color: '#d32f2f'}}>{producto.nombre}</div>
-                    <div style={{color: '#666', fontSize: '0.9rem'}}>
+                    <div className="product-name">{producto.nombre}</div>
+                    <div className="product-details">
                       Categoría: {producto.categoria} | Marca: {producto.marca || 'N/A'} | 
-                      Precio: {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`}
+                      Precio: {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`} |
+                      Stock: {producto.stock}
                     </div>
                   </div>
                 ))
@@ -217,7 +180,6 @@ const EliminarProducto: React.FC = () => {
             </div>
           </div>
         ) : (
-          // CONFIRMACIÓN DE ELIMINACIÓN
           <div className="form-container delete-container">
             <div className="warning-icon">⚠️</div>
             
@@ -298,4 +260,4 @@ const EliminarProducto: React.FC = () => {
   );
 };
 
-export default EliminarProducto;
+export default EliminarProductoAdmin;

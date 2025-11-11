@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import "../../styles/form-products.css";
+import { useAuth } from '../../hooks/useAuth';
 
 interface Producto {
   id: number;
   nombre: string;
   categoria: string;
   marca: string;
-  precio: number;
+  precio: number | null;
   precio_tipo: string;
   stock: number;
   descripcion: string;
   imagen_url: string;
 }
 
-const MenuProducto: React.FC = () => {
+const MenuProductoAdmin: React.FC = () => {
+  const { admin } = useAuth();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
-  // Cargar productos al iniciar
   useEffect(() => {
     cargarProductos();
   }, []);
@@ -31,17 +32,13 @@ const MenuProducto: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/productos');
-      
-      console.log('Response status:', response.status);
+      const response = await fetch('http://localhost:3000/api/productos');
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Productos cargados:', data);
         setProductos(data);
       } else {
         const errorText = await response.text();
-        console.error('Error en respuesta:', response.status, errorText);
         setError(`Error ${response.status}: ${errorText}`);
       }
     } catch (error) {
@@ -52,116 +49,92 @@ const MenuProducto: React.FC = () => {
     }
   };
 
-  // Función para eliminar producto directamente con confirmación
   const eliminarProducto = async (id: number, nombre: string) => {
+    if (!confirm(`¿Estás seguro de eliminar el producto "${nombre}"?`)) return;
+
     try {
-      const response = await fetch(`/api/productos/${id}`, { 
+      const response = await fetch(`http://localhost:3000/api/productos/${id}`, { 
         method: 'DELETE' 
       });
       
       if (response.ok) {
         setProductos(prev => prev.filter(p => p.id !== id));
-        alert(`✅ Producto "${nombre}" eliminado exitosamente`);
+        alert(`Producto "${nombre}" eliminado exitosamente`);
       } else {
-        alert('❌ Error al eliminar producto');
+        alert('Error al eliminar producto');
       }
     } catch (error) {
       console.error('Error eliminando producto:', error);
-      alert('❌ Error al eliminar producto');
+      alert('Error al eliminar producto');
     }
   };
 
-  // Filtrar productos para la tabla
   const productosFiltrados = productos.filter(producto => {
     const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || producto.categoria === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
-  // Calcular estadísticas
   const totalProductos = productos.length;
-  const productosEnStock = productos.filter(p => Number(p.stock) > 0).length;
-  const valorInventario = productos.reduce((sum, p) => sum + (Number(p.precio) * Number(p.stock)), 0);
+const totalUnidadesStock = productos.reduce((sum, producto) => sum + Number(producto.stock), 0);
+const valorInventario = productos.reduce((sum, producto) => {
+  // Solo productos con precio fijo contribuyen al valor
+  if (producto.precio_tipo === 'fijo' && producto.precio) {
+    return sum + (Number(producto.precio) * Number(producto.stock));
+  }
+  return sum;
+}, 0);
+
+  if (!admin.isAuthenticated) {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Verificando permisos de administrador...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <header className="header">
-        <div className="header-container">
-          <Link to="/" className="logo">
-            <img 
-              src="/favicon.ico" 
-              alt="Logo Servipuertas" 
-              className="logo-img" 
-            />
-            <span className="logo-text">Servipuertas Morelia</span>
-          </Link>
-          <nav className="nav">
-            <ul>
-              <li><Link to="/" className="nav-link">Inicio</Link></li>
-              <li><Link to="/productos" className="nav-link">Productos</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
       <main className="main-content">
         <h1 className="page-title">Panel de Administración</h1>
 
-        {/* MOSTRAR ERROR SI EXISTE */}
         {error && (
-          <div style={{
-            background: '#ffebee',
-            border: '1px solid #ef5350',
-            padding: '1rem',
-            borderRadius: '8px',
-            marginBottom: '1rem',
-            color: '#c62828'
-          }}>
+          <div className="error-message">
             <strong>Error al cargar productos:</strong>
             <p>{error}</p>
             <button 
               onClick={cargarProductos}
-              style={{
-                background: '#1976d2',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                marginTop: '0.5rem'
-              }}
+              className="btn-retry"
             >
               🔄 Reintentar
             </button>
           </div>
         )}
 
-        {/* OPCIONES CRUD EN TARJETAS - Estas llevan a las páginas específicas */}
-        <div className="stats-container" style={{marginTop: '2rem'}}>
-          <Link to="/admin/agregar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
-            <div className="stat-number">➕</div>
+        <div className="stats-container">
+          <Link to="/admin/agregar-producto" className="stat-card link-card">
+            <div className="stat-number"></div>
             <div className="stat-label">Agregar Producto</div>
-            <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Crear nuevo producto en el inventario</p>
+            <p>Crear nuevo producto en el inventario</p>
           </Link>
 
-          <Link to="/admin/editar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
-            <div className="stat-number">✏️</div>
+          <Link to="/admin/editar-producto" className="stat-card link-card">
+            <div className="stat-number"></div>
             <div className="stat-label">Editar Producto</div>
-            <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Modificar información de productos</p>
+            <p>Modificar información de productos</p>
           </Link>
 
-          <Link to="/admin/eliminar-producto" className="stat-card" style={{textDecoration: 'none', cursor: 'pointer'}}>
-            <div className="stat-number">🗑️</div>
+          <Link to="/admin/eliminar-producto" className="stat-card link-card">
+            <div className="stat-number"></div>
             <div className="stat-label">Eliminar Producto</div>
-            <p style={{color: '#666', fontSize: '0.9rem', marginTop: '0.5rem'}}>Remover productos del inventario</p>
+            <p>Remover productos del inventario</p>
           </Link>
         </div>
 
-        {/* TABLA DE PRODUCTOS EXISTENTES - Aquí solo se puede eliminar directamente */}
-        <div className="table-container" style={{marginTop: '2rem'}}>
-          <h2 style={{color: '#333', marginBottom: '1rem'}}>Productos Registrados</h2>
+        <div className="table-container">
+          <h2>Productos Registrados</h2>
           
-          {/* Filtros para la tabla */}
           <div className="search-bar">
             <input 
               type="text" 
@@ -177,131 +150,104 @@ const MenuProducto: React.FC = () => {
               onChange={(e) => setFilterCategory(e.target.value)}
             >
               <option value="">Todas las categorías</option>
+              <option value="puerta">Puerta</option>
               <option value="motor">Motor</option>
               <option value="accesorio">Accesorio</option>
-              <option value="puerta">Puerta</option>
-              <option value="seguridad">Seguridad</option>
-              <option value="kit">Kit</option>
+              <option value="herrajes">Herrajes</option>
+              <option value="ventanas">Ventanas</option>
             </select>
           </div>
 
-          <table className="productos-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Marca</th>
-                <th>Precio</th>
-                <th>Stock</th>
-                <th>Descripción</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={8} style={{textAlign: 'center', padding: '2rem'}}>
-                    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem'}}>
-                      <div style={{
-                        border: '4px solid #f3f3f3',
-                        borderTop: '4px solid #3498db',
-                        borderRadius: '50%',
-                        width: '40px',
-                        height: '40px',
-                        animation: 'spin 1s linear infinite'
-                      }} />
-                      <p>Cargando productos...</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : productosFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan={8} style={{textAlign: 'center', padding: '2rem'}}>
-                    {productos.length === 0 ? '❌ No hay productos registrados' : '🔍 No se encontraron productos'}
-                  </td>
-                </tr>
+<div className="table-responsive">
+  <table className="productos-table compact-table">
+    <thead>
+      <tr>
+        <th className="compact-id">ID</th>
+        <th className="compact-name">Nombre</th>
+        <th className="compact-category">Categoría</th>
+        <th className="compact-brand">Marca</th>
+        <th className="compact-price">Precio</th>
+        <th className="compact-stock">Stock</th>
+        <th className="compact-description">Descripción</th>
+        <th className="compact-actions">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {loading ? (
+        <tr>
+          <td colSpan={8} className="loading-cell">
+            <div className="spinner"></div>
+            <p>Cargando productos...</p>
+          </td>
+        </tr>
+      ) : productosFiltrados.length === 0 ? (
+        <tr>
+          <td colSpan={8} className="no-data-cell">
+            {productos.length === 0 ? '❌ No hay productos registrados' : '🔍 No se encontraron productos'}
+          </td>
+        </tr>
+      ) : (
+        productosFiltrados.map(producto => (
+          <tr key={producto.id}>
+            <td className="compact-id">{producto.id}</td>
+            <td className="compact-name">
+              <span className="product-name" title={producto.nombre}>
+                {producto.nombre}
+              </span>
+            </td>
+            <td className="compact-category">
+              <span className="category-badge">
+                {producto.categoria}
+              </span>
+            </td>
+            <td className="compact-brand">{producto.marca}</td>
+            <td className="compact-price price-cell">
+              {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
+            </td>
+            <td className="compact-stock">
+              <span className={`stock-badge ${Number(producto.stock) > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                {producto.stock}
+              </span>
+            </td>
+            <td className="compact-description description-cell">
+              {producto.descripcion ? (
+                <span title={producto.descripcion}>
+                  {producto.descripcion.substring(0, 25)}
+                  {producto.descripcion.length > 25 && '...'}
+                </span>
               ) : (
-                productosFiltrados.map(producto => (
-                  <tr key={producto.id}>
-                    <td>{producto.id}</td>
-                    <td style={{fontWeight: 'bold'}}>{producto.nombre}</td>
-                    <td>
-                      <span style={{
-                        background: '#e8f5e8',
-                        color: '#2e7d32',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '12px'
-                      }}>
-                        {producto.categoria}
-                      </span>
-                    </td>
-                    <td>{producto.marca}</td>
-                    <td style={{fontWeight: 'bold', color: '#2e7d32'}}>
-                      {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `${Number(producto.precio).toFixed(2)}`}
-                    </td>
-                    <td>
-                      <span style={{
-                        background: Number(producto.stock) > 0 ? '#e8f5e8' : '#ffebee',
-                        color: Number(producto.stock) > 0 ? '#2e7d32' : '#c62828',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
-                      }}>
-                        {producto.stock}
-                      </span>
-                    </td>
-                    <td style={{maxWidth: '200px'}}>
-                      {producto.descripcion ? (
-                        <span title={producto.descripcion}>
-                          {producto.descripcion.substring(0, 50)}...
-                        </span>
-                      ) : (
-                        <span style={{color: '#999'}}>Sin descripción</span>
-                      )}
-                    </td>
-                    <td>
-                      {/* SOLO BOTÓN ELIMINAR DIRECTO - No hay edición aquí */}
-                      <button 
-                        onClick={() => {
-                          if (confirm(`¿Estás seguro de eliminar el producto "${producto.nombre}"?`)) {
-                            eliminarProducto(producto.id, producto.nombre);
-                          }
-                        }}
-                        style={{
-                          background: '#d32f2f',
-                          color: 'white',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.8rem'
-                        }}
-                      >
-                        🗑️ Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                <span className="no-description">Sin descripción</span>
               )}
-            </tbody>
-          </table>
+            </td>
+            <td className="compact-actions">
+              <button 
+                onClick={() => eliminarProducto(producto.id, producto.nombre)}
+                className="btn-delete"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
         </div>
 
-        {/* ESTADÍSTICAS */}
-        <div className="stats-container" style={{marginTop: '2rem'}}>
+        <div className="stats-container">
           <div className="stat-card">
             <div className="stat-number" style={{color: '#1976d2'}}>{totalProductos}</div>
             <div className="stat-label">Total Productos</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number" style={{color: '#2e7d32'}}>{productosEnStock}</div>
-            <div className="stat-label">Productos en Stock</div>
+            <div className="stat-number" style={{color: '#2e7d32'}}>{totalUnidadesStock}</div>
+            <div className="stat-label">Total Unidades en Stock</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number" style={{color: '#ed6c02'}}>${valorInventario.toFixed(2)}</div>
+            <div className="stat-number" style={{color: '#ed6c02'}}>
+              ${valorInventario.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+            </div>
             <div className="stat-label">Valor Inventario</div>
           </div>
         </div>
@@ -334,4 +280,4 @@ const MenuProducto: React.FC = () => {
   );
 };
 
-export default MenuProducto;
+export default MenuProductoAdmin;

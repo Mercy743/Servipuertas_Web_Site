@@ -492,4 +492,13 @@ body {
     }
 }
 
+/* Diferenciar visualmente admin vs cliente */
+.header-admin {
+  background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%) !important;
+}
+
+.header-client {
+  background: linear-gradient(135deg, #0031ae 0%, #3f6cddfd 100%) !important;
+}
+
 /*FIN GLOBAL.CSS ///////////////////////////////////////////////////////////*/
