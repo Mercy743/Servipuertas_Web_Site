@@ -1,15 +1,4 @@
-.products-page {
-  padding: 2rem 0;
-  min-height: 80vh;
-  background: linear-gradient(135deg, #030c70d8 20%, #80e2f8 100%);
-}
-
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
+/* ========== HEADER CENTRADO ========== */
 .page-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -17,19 +6,26 @@
 }
 
 .page-title {
-  color: white;
-  font-size: 2.8rem;
+  font-size: 2.5rem;
+  color: #2c5530;
   margin-bottom: 0.5rem;
   font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-align: center;
 }
 
 .page-subtitle {
-  color: white;
-  font-size: 1.3rem;
-  opacity: 0.9;
+  font-size: 1.2rem;
+  color: #666;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
 }
 
+/* Remover sección de refresh */
+.refresh-section {
+  display: none;
+}
 /* ========== SISTEMA DE BÚSQUEDA Y FILTROS MEJORADO ========== */
 .filters-container {
   background: white;
@@ -819,4 +815,66 @@
   .price-info {
     align-items: flex-start;
   }
+}
+/* ========== HEADER CENTRADO ========== */
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 2rem 0;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  color: #2c5530;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.page-subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Remover sección de refresh */
+.refresh-section {
+  display: none;
+}
+/* ========== ESTILOS PARA VISTA PREVIA DE IMAGEN ========== */
+.image-preview-container {
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1rem;
+  background: #fafafa;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.image-preview-info {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #d4edda;
+  color: #155724;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.help-text {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
 }

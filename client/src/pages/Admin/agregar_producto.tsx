@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -25,7 +25,8 @@ const productSchema = yup.object({
     .min(0, 'El stock no puede ser negativo')
     .required('El stock es requerido'),
   marca: yup.string().required('La marca es requerida'),
-  descripcion: yup.string().required('La descripción es requerida')
+  descripcion: yup.string().required('La descripción es requerida'),
+  imagen_url: yup.string().required('La URL de la imagen es requerida').url('Debe ser una URL válida')
 });
 
 type FormData = {
@@ -35,57 +36,102 @@ type FormData = {
   stock: number;
   marca: string;
   descripcion: string;
+  imagen_url: string;
 };
 
 const AgregarProductoAdmin: React.FC = () => {
   const { admin } = useAuth();
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imageError, setImageError] = useState<string>('');
+  
   const { 
     register, 
     handleSubmit, 
-    formState: { errors, isSubmitting } 
+    formState: { errors, isSubmitting },
+    watch 
   } = useForm<FormData>({
     resolver: yupResolver(productSchema) as any
   });
 
+  // Observar cambios en la URL de la imagen para mostrar vista previa
+  const imagenUrl = watch('imagen_url');
+
+  // Función para validar y mostrar vista previa de la imagen
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setImageError('');
+    
+    if (url) {
+      const img = new Image();
+      img.onload = () => {
+        setImagePreview(url);
+        setImageError('');
+      };
+      img.onerror = () => {
+        setImagePreview('');
+        setImageError('La URL de la imagen no es válida o no se puede cargar');
+      };
+      img.src = url;
+    } else {
+      setImagePreview('');
+    }
+  };
+
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      const precioValue = data.precio;
-      const isPrecioATratar = typeof precioValue === 'string' && 
-                              precioValue.toLowerCase().includes('tratar');
-      
-      const precioTipo = isPrecioATratar ? 'a_tratar' : 'fijo';
-      const precioNumerico = isPrecioATratar ? null : Number(precioValue);
-      
-      const response = await fetch('http://localhost:3000/api/productos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: data.nombre,
-          descripcion: data.descripcion,
-          precio: precioNumerico,
-          precio_tipo: precioTipo,
-          stock: data.stock,
-          imagen_url: '',
-          marca: data.marca,
-          categoria: data.categoria
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error del servidor');
+      // Validar que la imagen sea accesible antes de enviar
+      if (data.imagen_url) {
+        const img = new Image();
+        img.onload = async () => {
+          await submitForm(data);
+        };
+        img.onerror = () => {
+          setImageError('No se puede acceder a la imagen. Verifica la URL.');
+          return;
+        };
+        img.src = data.imagen_url;
+      } else {
+        await submitForm(data);
       }
-
-      await response.json();
-      alert('Producto agregado exitosamente');
-      window.location.href = '/admin/menu-producto';
-      
     } catch (error) {
       console.error('Error al agregar producto:', error);
       alert('Error al agregar producto: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
+  };
+
+  const submitForm = async (data: FormData) => {
+    const precioValue = data.precio;
+    const isPrecioATratar = typeof precioValue === 'string' && 
+                            precioValue.toLowerCase().includes('tratar');
+    
+    const precioTipo = isPrecioATratar ? 'a_tratar' : 'fijo';
+    const precioNumerico = isPrecioATratar ? null : Number(precioValue);
+    
+    const response = await fetch('http://localhost:3000/api/productos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nombre: data.nombre,
+        descripcion: data.descripcion,
+        precio: precioNumerico,
+        precio_tipo: precioTipo,
+        stock: data.stock,
+        imagen_url: data.imagen_url,
+        marca: data.marca,
+        categoria: data.categoria
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error del servidor');
+    }
+
+    await response.json();
+    alert('Producto agregado exitosamente');
+    window.location.href = '/admin/menu-producto';
   };
 
   if (!admin.isAuthenticated) {
@@ -195,6 +241,49 @@ const AgregarProductoAdmin: React.FC = () => {
               </div>
 
               <div className="form-group full-width">
+                <label htmlFor="imagen_url">URL de la Imagen *</label>
+                <input 
+                  type="url" 
+                  id="imagen_url" 
+                  {...register('imagen_url')}
+                  className={errors.imagen_url ? 'error' : ''}
+                  placeholder="https://ejemplo.com/imagen.jpg"
+                  onChange={handleImageUrlChange}
+                />
+                {errors.imagen_url && (
+                  <span className="error-message">
+                    {errors.imagen_url.message?.toString()}
+                  </span>
+                )}
+                {imageError && (
+                  <span className="error-message">
+                    {imageError}
+                  </span>
+                )}
+                <small className="help-text">
+                  Ingresa la URL completa de la imagen (debe ser accesible públicamente)
+                </small>
+              </div>
+
+              {/* Vista previa de la imagen */}
+              {imagePreview && (
+                <div className="form-group full-width">
+                  <label>Vista Previa de la Imagen</label>
+                  <div className="image-preview-container">
+                    <img 
+                      src={imagePreview} 
+                      alt="Vista previa" 
+                      className="image-preview"
+                      onError={() => setImageError('Error al cargar la imagen')}
+                    />
+                    <div className="image-preview-info">
+                      ✅ Imagen válida - Se mostrará correctamente
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-group full-width">
                 <label htmlFor="descripcion">Descripción *</label>
                 <textarea 
                   id="descripcion" 
@@ -218,7 +307,7 @@ const AgregarProductoAdmin: React.FC = () => {
               <button 
                 type="submit" 
                 className="btn btn-primary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !!imageError}
               >
                 <span>💾</span> 
                 {isSubmitting ? 'Guardando...' : 'Guardar Producto'}

@@ -1,24 +1,39 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useProducts } from '../hooks/useProducts';
 import "../styles/ProductsPage.css";
 import { Link } from 'react-router-dom';
 
 export const ProductsPage: React.FC = () => {
-  const { products, loading, error } = useProducts();
+  const { products, loading, error, refetch } = useProducts();
   const [productsToShow, setProductsToShow] = useState<number>(0);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'scroll'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock'>('name');
   const [priceFilter, setPriceFilter] = useState('');
   const [stockFilter, setStockFilter] = useState('');
-
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isRefetching, setIsRefetching] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Función para recargar productos con AJAX
+  const handleRefreshProducts = async () => {
+    try {
+      setIsRefetching(true);
+      await refetch();
+      // Pequeño delay para mostrar el estado de loading
+      setTimeout(() => {
+        setIsRefetching(false);
+      }, 500);
+    } catch (error) {
+      console.error('Error al recargar productos:', error);
+      setIsRefetching(false);
+    }
+  };
 
   // Filtrado MEJORADO - solo por nombre y marca
   const filteredProducts = useMemo(() => {
@@ -76,18 +91,6 @@ export const ProductsPage: React.FC = () => {
     return filtered;
   }, [products, searchTerm, selectedCategory, priceFilter, stockFilter, sortBy, productsToShow]);
 
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -350, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 350, behavior: 'smooth' });
-    }
-  };
-
   const formatPrice = (price: any, precioTipo: string) => {
     if (!mounted) return 'Cargando...';
 
@@ -109,6 +112,36 @@ export const ProductsPage: React.FC = () => {
     setStockFilter('');
     setProductsToShow(0);
   };
+
+  // Función para abrir la imagen en modal
+  const openImageModal = (imageUrl: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevenir que se active otros eventos
+    setSelectedImage(imageUrl);
+  };
+
+  // Función para cerrar el modal
+  const closeImageModal = () => {
+    setSelectedImage(null);
+  };
+
+  // Cerrar modal con ESC
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeImageModal();
+      }
+    };
+
+    if (selectedImage) {
+      document.addEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'auto'; // Restaurar scroll del body
+    };
+  }, [selectedImage]);
 
   if (!mounted) {
     return (
@@ -133,8 +166,8 @@ export const ProductsPage: React.FC = () => {
       <div className="error-container">
         <h2>Error al cargar productos</h2>
         <p>{error}</p>
-        <button onClick={() => window.location.reload()}>
-          Reintentar
+        <button onClick={handleRefreshProducts} className="btn btn-primary">
+          🔄 Reintentar
         </button>
       </div>
     );
@@ -161,9 +194,11 @@ export const ProductsPage: React.FC = () => {
             <img
               src={product.imagen_url}
               alt={product.nombre}
+              onClick={(e) => openImageModal(product.imagen_url, e)}
               onError={(e) => {
                 e.currentTarget.src = 'https://via.placeholder.com/300x200/2c5530/ffffff?text=Sin+Imagen';
               }}
+              style={{ cursor: 'pointer' }}
             />
           ) : (
             <div className="image-placeholder">
@@ -218,9 +253,11 @@ export const ProductsPage: React.FC = () => {
             <img
               src={product.imagen_url}
               alt={product.nombre}
+              onClick={(e) => openImageModal(product.imagen_url, e)}
               onError={(e) => {
                 e.currentTarget.src = 'https://via.placeholder.com/300x200/2c5530/ffffff?text=Sin+Imagen';
               }}
+              style={{ cursor: 'pointer' }}
             />
           ) : (
             <div className="image-placeholder">
@@ -304,12 +341,6 @@ export const ProductsPage: React.FC = () => {
                 onClick={() => setViewMode('grid')}
               >
                 <span>⏹️</span> Cuadrícula
-              </button>
-              <button 
-                className={`view-btn ${viewMode === 'scroll' ? 'active' : ''}`}
-                onClick={() => setViewMode('scroll')}
-              >
-                <span>↔️</span> Horizontal
               </button>
               <button 
                 className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
@@ -414,26 +445,6 @@ export const ProductsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Vista de Scroll Horizontal */}
-        <div className={`horizontal-view ${viewMode === 'scroll' ? 'active' : ''}`}>
-          <div className="scroll-container">
-            <div className="scroll-header">
-              <h3 className="scroll-title">Productos Destacados</h3>
-              <div className="scroll-nav">
-                <button className="nav-btn" onClick={scrollLeft}>‹</button>
-                <button className="nav-btn" onClick={scrollRight}>›</button>
-              </div>
-            </div>
-            <div className="products-scroll" ref={scrollContainerRef}>
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="scroll-product-card">
-                  <ProductCard product={product} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Vista de Cuadrícula */}
         <div className={`products-grid ${viewMode === 'grid' ? 'active' : ''}`} 
              style={{display: viewMode === 'grid' ? 'grid' : 'none'}}>
@@ -469,6 +480,32 @@ export const ProductsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal para imagen ampliada */}
+      {selectedImage && (
+        <div className="image-modal-overlay" onClick={closeImageModal}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close-btn" onClick={closeImageModal}>
+              ✕
+            </button>
+            <div className="modal-image-container">
+              <img 
+                src={selectedImage} 
+                alt="Vista ampliada" 
+                className="modal-image"
+                onError={(e) => {
+                  e.currentTarget.src = 'https://via.placeholder.com/600x400/2c5530/ffffff?text=Imagen+No+Disponible';
+                }}
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn btn-secondary" onClick={closeImageModal}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="footer">
         <div className="footer-container">
