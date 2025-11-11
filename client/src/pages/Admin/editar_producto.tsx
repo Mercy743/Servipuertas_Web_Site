@@ -193,7 +193,7 @@ const EditarProductoAdmin: React.FC = () => {
         {!producto ? (
           <div className="form-container">
             <div className="selection-header">
-              Selecciona un producto
+              Selecciona un producto para editar
             </div>
 
             <div className="search-bar">
@@ -219,28 +219,35 @@ const EditarProductoAdmin: React.FC = () => {
               </select>
             </div>
 
-              <div className="products-list">
-                {productosFiltrados.length === 0 ? (
-                  <div className="no-products">
-                    {productos.length === 0 ? 'No hay productos registrados' : 'No se encontraron productos'}
-                  </div>
-                ) : (
-                  productosFiltrados.map(producto => (
-                    <div 
-                      key={producto.id}
-                      className="product-item"
-                      onClick={() => seleccionarProducto(producto)}
-                    >
-                      <div className="product-name">{producto.nombre}</div>
-                      <div className="product-details">
-                        Categoría: {producto.categoria} | Marca: {producto.marca} | 
-                        Precio: {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`} |
-                        <span className="stock-info">Stock: {producto.stock}</span>
-                      </div>
+            {/* LISTA DE PRODUCTOS CORREGIDA */}
+            <div className="products-list" style={{minHeight: '300px'}}>
+              {productosFiltrados.length === 0 ? (
+                <div className="no-products">
+                  {productos.length === 0 ? 'No hay productos registrados' : 'No se encontraron productos'}
+                </div>
+              ) : (
+                productosFiltrados.map(producto => (
+                  <div 
+                    key={producto.id}
+                    className="product-item"
+                    onClick={() => seleccionarProducto(producto)}
+                    style={{
+                      display: 'block',
+                      opacity: 1,
+                      visibility: 'visible'
+                    }}
+                  >
+                    <div className="product-name">{producto.nombre}</div>
+                    <div className="product-details">
+                      <strong>Categoría:</strong> {producto.categoria} | 
+                      <strong> Marca:</strong> {producto.marca} | 
+                      <strong> Precio:</strong> {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString()}`} |
+                      <span className="stock-info">Stock: {producto.stock}</span>
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                ))
+              )}
+            </div>
 
             <div className="button-group">
               <Link to="/admin/menu-producto" className="btn btn-secondary">

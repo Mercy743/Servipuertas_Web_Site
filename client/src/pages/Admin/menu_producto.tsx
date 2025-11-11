@@ -158,81 +158,81 @@ const valorInventario = productos.reduce((sum, producto) => {
             </select>
           </div>
 
-<div className="table-responsive">
-  <table className="productos-table compact-table">
-    <thead>
-      <tr>
-        <th className="compact-id">ID</th>
-        <th className="compact-name">Nombre</th>
-        <th className="compact-category">Categoría</th>
-        <th className="compact-brand">Marca</th>
-        <th className="compact-price">Precio</th>
-        <th className="compact-stock">Stock</th>
-        <th className="compact-description">Descripción</th>
-        <th className="compact-actions">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {loading ? (
-        <tr>
-          <td colSpan={8} className="loading-cell">
-            <div className="spinner"></div>
-            <p>Cargando productos...</p>
-          </td>
-        </tr>
-      ) : productosFiltrados.length === 0 ? (
-        <tr>
-          <td colSpan={8} className="no-data-cell">
-            {productos.length === 0 ? '❌ No hay productos registrados' : '🔍 No se encontraron productos'}
-          </td>
-        </tr>
-      ) : (
-        productosFiltrados.map(producto => (
-          <tr key={producto.id}>
-            <td className="compact-id">{producto.id}</td>
-            <td className="compact-name">
-              <span className="product-name" title={producto.nombre}>
-                {producto.nombre}
-              </span>
-            </td>
-            <td className="compact-category">
-              <span className="category-badge">
-                {producto.categoria}
-              </span>
-            </td>
-            <td className="compact-brand">{producto.marca}</td>
-            <td className="compact-price price-cell">
-              {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
-            </td>
-            <td className="compact-stock">
-              <span className={`stock-badge ${Number(producto.stock) > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                {producto.stock}
-              </span>
-            </td>
-            <td className="compact-description description-cell">
-              {producto.descripcion ? (
-                <span title={producto.descripcion}>
-                  {producto.descripcion.substring(0, 25)}
-                  {producto.descripcion.length > 25 && '...'}
-                </span>
-              ) : (
-                <span className="no-description">Sin descripción</span>
-              )}
-            </td>
-            <td className="compact-actions">
-              <button 
-                onClick={() => eliminarProducto(producto.id, producto.nombre)}
-                className="btn-delete"
-              >
-                Eliminar
-              </button>
-            </td>
-          </tr>
-        ))
-      )}
-    </tbody>
-  </table>
-</div>
+          <div className="table-responsive">
+            <table className="productos-table compact-table">
+              <thead>
+                <tr>
+                  <th className="compact-id">ID</th>
+                  <th className="compact-name">Nombre</th>
+                  <th className="compact-category">Categoría</th>
+                  <th className="compact-brand">Marca</th>
+                  <th className="compact-price">Precio</th>
+                  <th className="compact-stock">Stock</th>
+                  <th className="compact-description">Descripción</th>
+                  <th className="compact-actions">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="loading-cell">
+                      <div className="spinner"></div>
+                      <p>Cargando productos...</p>
+                    </td>
+                  </tr>
+                ) : productosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="no-data-cell">
+                      {productos.length === 0 ? 'No hay productos registrados' : 'No se encontraron productos'}
+                    </td>
+                  </tr>
+                ) : (
+                  productosFiltrados.map(producto => (
+                    <tr key={producto.id}>
+                      <td className="compact-id">{producto.id}</td>
+                      <td className="compact-name">
+                        <span className="product-name" title={producto.nombre}>
+                          {producto.nombre}
+                        </span>
+                      </td>
+                      <td className="compact-category">
+                        <span className="category-badge">
+                          {producto.categoria}
+                        </span>
+                      </td>
+                      <td className="compact-brand">{producto.marca}</td>
+                      <td className="compact-price price-cell">
+                        {producto.precio_tipo === 'a_tratar' ? 'A tratar' : `$${Number(producto.precio).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`}
+                      </td>
+                      <td className="compact-stock">
+                        <span className={`stock-badge ${Number(producto.stock) > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                          {producto.stock}
+                        </span>
+                      </td>
+                      <td className="compact-description description-cell">
+                        {producto.descripcion ? (
+                          <span title={producto.descripcion}>
+                            {producto.descripcion.substring(0, 25)}
+                            {producto.descripcion.length > 25 && '...'}
+                          </span>
+                        ) : (
+                          <span className="no-description">Sin descripción</span>
+                        )}
+                      </td>
+                      <td className="compact-actions">
+                        <button 
+                          onClick={() => eliminarProducto(producto.id, producto.nombre)}
+                          className="btn-delete"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="stats-container">
