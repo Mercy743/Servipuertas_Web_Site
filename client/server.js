@@ -4,12 +4,36 @@ import pkg from 'pg';
 const { Pool } = pkg;
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Para obtener __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HTTPS_PORT = process.env.HTTPS_PORT || 3443;
 
 app.use(cors());
 app.use(express.json());
+
+// ========================
+// CONFIGURACIÓN SSL/HTTPS
+// ========================
+
+const sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, '../ssl/localhost-key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, '../ssl/localhost.pem'))
+};
+
+console.log('Certificados SSL cargados correctamente');
+
+// ========================
+// CONEXIÓN A LA BASE DE DATOS
+// ========================
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -125,6 +149,7 @@ app.get('/api/productos', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener productos' });
     }
 });
+// Obtener todos los productos
 
 app.get('/api/productos/:id', async (req, res) => {
     try {
@@ -140,7 +165,7 @@ app.get('/api/productos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener producto' });
     }
 });
-
+// Añadir producto
 app.post('/api/productos', async (req, res) => {
     try {
         const { nombre, descripcion, precio, precio_tipo, stock, imagen_url, marca, categoria } = req.body;
@@ -156,7 +181,7 @@ app.post('/api/productos', async (req, res) => {
         res.status(500).json({ error: 'Error al crear producto' });
     }
 });
-
+// Actualizar producto
 app.put('/api/productos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -177,7 +202,7 @@ app.put('/api/productos/:id', async (req, res) => {
         res.status(500).json({ error: 'Error al actualizar producto' });
     }
 });
-
+// Eliminar un producto
 app.delete('/api/productos/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -193,6 +218,43 @@ app.delete('/api/productos/:id', async (req, res) => {
     }
 });
 
+// ========================
+// RUTA DE PRUEBA HTTPS
+// ========================
+
+app.get('/api/test-https', (req, res) => {
+    res.json({ 
+        message: 'HTTPS funcionando correctamente',
+        protocol: req.protocol,
+        secure: req.secure,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ========================
+// SERVIR ARCHIVOS ESTÁTICOS DEL FRONTEND
+// ========================
+
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ========================
+// INICIAR SERVIDORES
+// ========================
+
+// Servidor HTTPS (principal)
+https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
+    console.log(`Servidor HTTPS corriendo en: https://localhost:${HTTPS_PORT}`);
+    console.log(`Frontend disponible en: https://localhost:${HTTPS_PORT}`);
+    console.log(`API disponible en: https://localhost:${HTTPS_PORT}/api`);
+    console.log(`Prueba: https://localhost:${HTTPS_PORT}/api/test-https`);
+});
+
+// Servidor HTTP (redirección)
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor HTTP corriendo en: http://localhost:${PORT}`);
+    console.log(`Usa la versión HTTPS: https://localhost:${HTTPS_PORT}`);
 });
